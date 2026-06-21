@@ -10,7 +10,10 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="patient", nullable=False) # 'admin' or 'patient'
+    first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     patient_profile: Mapped[Optional["Patient"]] = relationship(
@@ -32,6 +35,8 @@ class Patient(Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     date_of_birth: Mapped[Optional[date]] = mapped_column(Date)
     phone: Mapped[Optional[str]] = mapped_column(String(50))
+    diagnosis: Mapped[Optional[str]] = mapped_column(String(2000), nullable=True)
+    assigned_admin_id: Mapped[Optional[str]] = mapped_column(String(255), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
@@ -39,6 +44,10 @@ class Patient(Base):
     consents: Mapped[List["Consent"]] = relationship("Consent", back_populates="patient", cascade="all, delete-orphan")
     assignments: Mapped[List["ExerciseAssignment"]] = relationship("ExerciseAssignment", back_populates="patient", cascade="all, delete-orphan")
     sessions: Mapped[List["MotionSession"]] = relationship("MotionSession", back_populates="patient", cascade="all, delete-orphan")
+
+    @property
+    def id(self) -> str:
+        return self.user_id
 
 
 class Consent(Base):
@@ -98,74 +107,89 @@ class MotionSession(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     patient_id: Mapped[str] = mapped_column(String(255), ForeignKey("patients.user_id", ondelete="CASCADE"), nullable=False)
-    exercise_name: Mapped[Optional[str]] = mapped_column(String(255))
-    form_score: Mapped[Optional[float]] = mapped_column(Float)
-    rom: Mapped[Optional[float]] = mapped_column(Float)
-    speed: Mapped[Optional[float]] = mapped_column(Float)
-    symmetry: Mapped[Optional[float]] = mapped_column(Float)
+    exercise_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("exercises.id", ondelete="SET NULL"))
+    completed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    score: Mapped[Optional[float]] = mapped_column(Numeric(5, 2))
+    status: Mapped[Optional[str]] = mapped_column(String(50))
 
     # Relationships
     patient: Mapped["Patient"] = relationship("Patient", back_populates="sessions")
-    frames: Mapped[List["MotionFrame"]] = relationship("MotionFrame", back_populates="session", cascade="all, delete-orphan")
+    exercise: Mapped[Optional["Exercise"]] = relationship("Exercise", back_populates="sessions")
+    metrics: Mapped[List["MotionMetric"]] = relationship("MotionMetric", back_populates="session", cascade="all, delete-orphan")
 
     @property
     def title(self) -> str:
-        return self.exercise_name or "Motion Tracking Session"
+        return self.exercise.name if self.exercise else "Motion Tracking Session"
 
     @property
     def description(self) -> str:
-        return f"Movement session for {self.exercise_name or 'exercise'}"
+        return self.exercise.description if (self.exercise and self.exercise.description) else "General movement session"
 
     @property
     def avg_score(self) -> float:
-        return self.form_score if self.form_score is not None else 0.0
+        return float(self.score) if self.score is not None else 0.0
 
     @property
     def range_of_motion(self) -> float:
-        return self.rom if self.rom is not None else 0.0
+        if self.metrics and len(self.metrics) > 0:
+            return self.metrics[0].rom if self.metrics[0].rom is not None else 0.0
+        return 0.0
 
     @property
     def metrics_summary(self) -> dict:
-        return {
-            "rom": self.rom or 0.0,
-            "speed": self.speed or 0.0,
-            "symmetry": self.symmetry or 0.0
-        }
+        if self.metrics and len(self.metrics) > 0:
+            m = self.metrics[0]
+            return {
+                "rom": m.rom or 0.0,
+                "speed": m.speed or 0.0,
+                "symmetry": m.symmetry or 0.0
+            }
+        return {"rom": 0.0, "speed": 0.0, "symmetry": 0.0}
 
     @property
     def duration_seconds(self) -> int:
-        if self.frames and len(self.frames) > 1:
-            start_t = self.frames[0].timestamp_ms
-            end_t = self.frames[-1].timestamp_ms
-            return max(int((end_t - start_t) / 1000), 0)
+        if self.metrics and len(self.metrics) > 0:
+            m = self.metrics[0]
+            if m.telemetry_frames and isinstance(m.telemetry_frames, dict) and "frames" in m.telemetry_frames:
+                frames = m.telemetry_frames["frames"]
+                if len(frames) > 1:
+                    start_t = frames[0].get("timestamp_millis", 0)
+                    end_t = frames[-1].get("timestamp_millis", 0)
+                    return max(int((end_t - start_t) / 1000), 0)
         return 180  # Default fallback
 
     @property
     def telemetry_data(self) -> list:
-        mapped_frames = []
-        for idx, frame in enumerate(self.frames):
-            mapped_frames.append({
-                "id": frame.id or (idx + 1),
-                "session_id": self.id,
-                "timestamp_millis": frame.timestamp_ms,
-                "joint_coordinates": frame.landmarks_json,
-                "sensor_signals": None
-            })
-        return mapped_frames
+        if self.metrics and len(self.metrics) > 0:
+            m = self.metrics[0]
+            if m.telemetry_frames and isinstance(m.telemetry_frames, dict) and "frames" in m.telemetry_frames:
+                frames = m.telemetry_frames["frames"]
+                mapped_frames = []
+                for idx, frame in enumerate(frames):
+                    mapped_frames.append({
+                        "id": idx + 1,
+                        "session_id": self.id,
+                        "timestamp_millis": frame.get("timestamp_millis", 0),
+                        "joint_coordinates": frame.get("joint_coordinates", {}),
+                        "sensor_signals": frame.get("sensor_signals")
+                    })
+                return mapped_frames
+        return []
 
 
-class MotionFrame(Base):
-    __tablename__ = "motion_frames"
+class MotionMetric(Base):
+    __tablename__ = "motion_metrics"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     session_id: Mapped[int] = mapped_column(Integer, ForeignKey("motion_sessions.id", ondelete="CASCADE"), nullable=False)
-    frame_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    timestamp_ms: Mapped[int] = mapped_column(Integer, nullable=False)
-    landmarks_json: Mapped[dict] = mapped_column(JSON, nullable=False)
+    rom: Mapped[Optional[float]] = mapped_column(Float) # Range of Motion
+    speed: Mapped[Optional[float]] = mapped_column(Float)
+    symmetry: Mapped[Optional[float]] = mapped_column(Float)
+    telemetry_frames: Mapped[Optional[dict]] = mapped_column(JSON) # Raw coordinates arrays
 
     # Relationships
-    session: Mapped["MotionSession"] = relationship("MotionSession", back_populates="frames")
+    session: Mapped["MotionSession"] = relationship("MotionSession", back_populates="metrics")
 
 
 class WebsiteContent(Base):

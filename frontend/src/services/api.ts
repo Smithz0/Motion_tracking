@@ -5,7 +5,27 @@ const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000') +
 async function request(path: string, options: RequestInit = {}) {
   // Retrieve the active Supabase session
   const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
+  let token = session?.access_token;
+
+  // Generate a mock JWT format token if running in Sandbox/Demo mode
+  if (!token) {
+    const savedMockUser = localStorage.getItem('chosen_motion_mock_user');
+    if (savedMockUser) {
+      try {
+        const mockUser = JSON.parse(savedMockUser);
+        const payload = {
+          sub: mockUser.id,
+          email: mockUser.email,
+          app_metadata: { role: mockUser.user_metadata?.role || 'patient' }
+        };
+        const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+        const payloadStr = btoa(JSON.stringify(payload));
+        token = `mock-token.${header}.${payloadStr}.mock-signature`;
+      } catch (err) {
+        console.warn('Failed to construct mock token from localStorage', err);
+      }
+    }
+  }
 
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
@@ -201,8 +221,3 @@ export async function deleteExercise(exerciseId: number) {
     method: 'DELETE',
   });
 }
-
-export async function fetchSessionReplay(sessionId: number) {
-  return request(`/motion-session/${sessionId}/replay`);
-}
-

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.router import api_router
+import app.models.models
 
 # Seed default exercises and rules
 def seed_default_exercises_and_rules():
@@ -153,8 +154,3 @@ def health_check():
 
 # Include api v1 router
 app.include_router(api_router, prefix=settings.API_V1_STR)
-
-# Register the motion capture storage router directly at the root level
-from app.api.v1.endpoints.motion_storage import router as motion_storage_router
-app.include_router(motion_storage_router, prefix="/motion-session", tags=["Motion Capture Storage"])
-

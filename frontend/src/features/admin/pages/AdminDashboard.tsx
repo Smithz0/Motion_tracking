@@ -10,9 +10,7 @@ import {
   fetchExercisesList,
   createExercise,
   updateExercise,
-  deleteExercise,
-  fetchAnySessionDetail,
-  fetchSessionReplay
+  deleteExercise
 } from '@/services/api';
 import { 
   Users, 
@@ -34,9 +32,7 @@ import {
   X,
   ClipboardList,
   Archive,
-  Edit2,
-  Play,
-  Pause
+  Edit2
 } from 'lucide-react';
 
 type Section = 'dashboard' | 'patients' | 'exercises' | 'reports' | 'analytics' | 'content' | 'settings';
@@ -51,290 +47,6 @@ const AdminDashboard: React.FC = () => {
   
   // Search query
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Replay states
-  const [replayModalOpen, setReplayModalOpen] = useState(false);
-  const [replaySession, setReplaySession] = useState<any>(null);
-  const [replayFrames, setReplayFrames] = useState<any[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
-  const [loadingReplay, setLoadingReplay] = useState(false);
-
-  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-
-  // Playback timer effect
-  useEffect(() => {
-    if (!isPlaying || replayFrames.length === 0) return;
-    
-    const interval = 1000 / (30 * playbackSpeed);
-    const timer = setInterval(() => {
-      setCurrentFrameIndex((prevIndex) => {
-        if (prevIndex >= replayFrames.length - 1) {
-          setIsPlaying(false);
-          return prevIndex;
-        }
-        return prevIndex + 1;
-      });
-    }, interval);
-
-    return () => clearInterval(timer);
-  }, [isPlaying, playbackSpeed, replayFrames.length]);
-
-  // Canvas drawing effect
-  useEffect(() => {
-    if (!replayModalOpen || loadingReplay) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw grid background
-    ctx.fillStyle = '#0f172a'; // slate-900
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.strokeStyle = '#1e293b'; // slate-800
-    ctx.lineWidth = 1;
-    const gridSize = 40;
-    for (let x = 0; x < canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-    for (let y = 0; y < canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-
-    if (replayFrames.length === 0) {
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '16px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('No frames recorded for this session', canvas.width / 2, canvas.height / 2);
-      return;
-    }
-
-    const frame = replayFrames[currentFrameIndex];
-    if (!frame) return;
-
-    // Support both new schema ('landmarks') and legacy ('joint_coordinates')
-    const joints = frame.landmarks || frame.joint_coordinates;
-    if (!joints) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Helper to get coordinates scaled to canvas size
-    const getScaledCoords = (key: string | number) => {
-      const coord = (joints as any)[key];
-      if (!coord) return null;
-      // Coordinates from MediaPipe are typically in [0.0, 1.0].
-      // Scale them to canvas dimensions.
-      if (typeof coord === 'object' && 'x' in coord && 'y' in coord) {
-        return { x: coord.x * width, y: coord.y * height };
-      }
-      if (Array.isArray(coord) && coord.length >= 2) {
-        return { x: coord[0] * width, y: coord[1] * height };
-      }
-      return null;
-    };
-
-    // Connections could be string keys or numeric indices depending on format
-    const isListFormat = Array.isArray(joints);
-    const JOINT_CONNECTIONS: [string | number, string | number][] = isListFormat ? [
-      // Torso
-      [11, 12], [11, 23], [12, 24], [23, 24],
-      // Left arm
-      [11, 13], [13, 15],
-      // Right arm
-      [12, 14], [14, 16],
-      // Left leg
-      [23, 25], [25, 27],
-      // Right leg
-      [24, 26], [26, 28]
-    ] : [
-      // Torso
-      ['shoulder_l', 'shoulder_r'], ['shoulder_r', 'hip_r'], ['hip_r', 'hip_l'], ['hip_l', 'shoulder_l'],
-      // Left arm
-      ['shoulder_l', 'elbow_l'], ['elbow_l', 'wrist_l'],
-      // Right arm
-      ['shoulder_r', 'elbow_r'], ['elbow_r', 'wrist_r'],
-      // Left leg
-      ['hip_l', 'knee_l'], ['knee_l', 'ankle_l'],
-      // Right leg
-      ['hip_r', 'knee_r'], ['knee_r', 'ankle_r']
-    ];
-
-    ctx.lineWidth = 5;
-    ctx.lineCap = 'round';
-    
-    // Draw bones with neon glow
-    JOINT_CONNECTIONS.forEach(([j1, j2]) => {
-      const pt1 = getScaledCoords(j1);
-      const pt2 = getScaledCoords(j2);
-      if (pt1 && pt2) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#06b6d4'; // cyan-500
-        ctx.beginPath();
-        ctx.moveTo(pt1.x, pt1.y);
-        ctx.lineTo(pt2.x, pt2.y);
-        ctx.strokeStyle = '#06b6d4';
-        ctx.stroke();
-      }
-    });
-
-    // Draw joints with neon green glow
-    const drawJoint = (key: string | number) => {
-      const pt = getScaledCoords(key);
-      if (pt) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#22c55e'; // green-500
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 8, 0, 2 * Math.PI);
-        ctx.fillStyle = '#22c55e';
-        ctx.fill();
-        ctx.shadowBlur = 0; // Turn off shadow for outline
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    };
-
-    if (isListFormat) {
-      [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28].forEach(drawJoint);
-    } else {
-      Object.keys(joints).forEach(drawJoint);
-    }
-
-    // Draw visual overlays (HUD metadata)
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)'; // translucent slate-900
-    ctx.fillRect(16, 16, 220, 95);
-    ctx.strokeStyle = '#334155'; // slate-700
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(16, 16, 220, 95);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`SESSION REPLAY HUD`, 28, 38);
-    
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '11px sans-serif';
-    ctx.fillText(`Frame Index: ${currentFrameIndex + 1} / ${replayFrames.length}`, 28, 58);
-    
-    const timestamp = frame.timestamp_ms !== undefined ? frame.timestamp_ms : frame.timestamp_millis;
-    const timeSec = (timestamp / 1000).toFixed(2);
-    ctx.fillText(`Time Elapsed: ${timeSec}s`, 28, 74);
-    ctx.fillText(`Speed: ${playbackSpeed.toFixed(1)}x`, 28, 90);
-
-    // Dynamic Shoulder Angle logic
-    const getCoordArray = (key: string | number) => {
-      const coord = (joints as any)[key];
-      if (!coord) return null;
-      if (typeof coord === 'object' && 'x' in coord && 'y' in coord) {
-        return [coord.x, coord.y];
-      }
-      if (Array.isArray(coord) && coord.length >= 2) {
-        return [coord[0], coord[1]];
-      }
-      return null;
-    };
-
-    const hR = getCoordArray(isListFormat ? 24 : 'hip_r');
-    const sR = getCoordArray(isListFormat ? 12 : 'shoulder_r');
-    const eR = getCoordArray(isListFormat ? 14 : 'elbow_r');
-    if (hR && sR && eR) {
-      const calculateJointAngle = (a: number[], b: number[], c: number[]) => {
-        const baX = a[0] - b[0];
-        const baY = a[1] - b[1];
-        const bcX = c[0] - b[0];
-        const bcY = c[1] - b[1];
-        const dot = baX * bcX + baY * bcY;
-        const magA = Math.sqrt(baX*baX + baY*baY);
-        const magC = Math.sqrt(bcX*bcX + bcY*bcY);
-        if (magA === 0 || magC === 0) return 0;
-        return Math.round((Math.acos(dot / (magA * magC)) * 180) / Math.PI);
-      };
-      
-      const rShoulderAngle = calculateJointAngle(hR, sR, eR);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-      ctx.fillRect(canvas.width - 200, 16, 184, 40);
-      ctx.strokeStyle = '#334155';
-      ctx.strokeRect(canvas.width - 200, 16, 184, 40);
-      
-      ctx.fillStyle = '#06b6d4';
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(`R Shoulder ROM: ${rShoulderAngle}°`, canvas.width - 184, 40);
-    }
-  }, [replayFrames, currentFrameIndex, playbackSpeed, replayModalOpen, loadingReplay]);
-
-  const handleOpenReplay = async (sessionId: number) => {
-    setLoadingReplay(true);
-    setReplayModalOpen(true);
-    setCurrentFrameIndex(0);
-    setIsPlaying(false);
-    try {
-      const data = await fetchSessionReplay(sessionId);
-      setReplaySession(data);
-      if (data.frames && data.frames.length > 0) {
-        setReplayFrames(data.frames);
-      } else if (data.telemetry_data && data.telemetry_data.length > 0) {
-        setReplayFrames(data.telemetry_data);
-      } else {
-        setReplayFrames([]);
-      }
-    } catch (err) {
-      console.error('Failed to load session replay data. Using mock frames.', err);
-      // Generate some high-quality mock skeletal frames for visual demo if API fails
-      const mockFrames = [];
-      const totalMockFrames = 100;
-      for (let i = 0; i < totalMockFrames; i++) {
-        const t = i * 100;
-        const progress = i / totalMockFrames;
-        const angleRad = Math.sin(progress * Math.PI) * (Math.PI * 0.7); // Up to ~126 deg
-        const armX = 0.5 + Math.cos(angleRad) * 0.25;
-        const armY = 0.4 - Math.sin(angleRad) * 0.25;
-        
-        mockFrames.push({
-          timestamp_ms: t,
-          landmarks: {
-            shoulder_l: [0.35, 0.4, 0.0],
-            shoulder_r: [0.65, 0.4, 0.0],
-            elbow_l:    [0.25, 0.4, 0.0],
-            elbow_r:    [0.75, 0.4, 0.0],
-            wrist_l:    [0.15, 0.4, 0.0],
-            wrist_r:    [0.85, 0.4, 0.0],
-            hip_l:      [0.4, 0.75, 0.0],
-            hip_r:      [0.6, 0.75, 0.0],
-            knee_l:     [0.4, 0.88, 0.0],
-            knee_r:     [0.6, 0.88, 0.0],
-            ankle_l:    [0.4, 0.98, 0.0],
-            ankle_r:    [0.6, 0.98, 0.0],
-            // Active arm based on abduction simulation
-            elbow_r: [0.65 + Math.cos(angleRad - 0.2)*0.12, 0.4 - Math.sin(angleRad - 0.2)*0.12, 0.0],
-            wrist_r: [armX, armY, 0.0]
-          }
-        });
-      }
-      setReplaySession({
-        id: sessionId,
-        title: 'Mock Replay Session',
-        created_at: new Date().toISOString(),
-        avg_score: 95,
-        range_of_motion: 126
-      });
-      setReplayFrames(mockFrames);
-    } finally {
-      setLoadingReplay(false);
-    }
-  };
   const [includeArchived, setIncludeArchived] = useState(false);
   
   // Detailed Patient view
@@ -1089,19 +801,12 @@ const AdminDashboard: React.FC = () => {
                         ) : (
                           <div className="space-y-2">
                             {patientDetail.sessions.map((s: any) => (
-                              <div 
-                                key={s.id} 
-                                className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/20 p-2.5 rounded-xl border border-slate-100/50 dark:border-slate-800/20 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
-                                onClick={() => handleOpenReplay(s.id)}
-                              >
+                              <div key={s.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/20 p-2.5 rounded-xl border border-slate-100/50 dark:border-slate-800/20 text-xs">
                                 <div>
                                   <span className="font-medium text-slate-700 dark:text-slate-300 block truncate max-w-[150px]">{s.title}</span>
                                   <span className="text-2xs text-slate-400">{new Date(s.created_at).toLocaleDateString()}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-accent-500">{s.avg_score || s.score}% Form</span>
-                                  <Play className="h-3 w-3 text-primary-500" />
-                                </div>
+                                <span className="font-bold text-accent-500">{s.avg_score || s.score}% Form</span>
                               </div>
                             ))}
                           </div>
@@ -1506,16 +1211,11 @@ const AdminDashboard: React.FC = () => {
                         <th className="pb-3">Completed At</th>
                         <th className="pb-3">Flexion (ROM)</th>
                         <th className="pb-3">Form Score</th>
-                        <th className="pb-3 text-right pr-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
                       {stats?.recent_activity.map((act: any) => (
-                        <tr 
-                          key={act.id} 
-                          className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all cursor-pointer"
-                          onClick={() => handleOpenReplay(act.id)}
-                        >
+                        <tr key={act.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all">
                           <td className="py-4 pl-2 font-medium text-slate-900 dark:text-white">
                             {act.title}
                           </td>
@@ -1533,11 +1233,6 @@ const AdminDashboard: React.FC = () => {
                             }`}>
                               {act.avg_score}% Accuracy
                             </span>
-                          </td>
-                          <td className="py-4 text-right pr-4">
-                            <button className="text-xs font-semibold text-primary-500 hover:text-primary-600 flex items-center gap-1 ml-auto">
-                              <Play className="h-3 w-3" /> Review Replay
-                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1715,148 +1410,6 @@ const AdminDashboard: React.FC = () => {
           )}
         </main>
       </div>
-
-      {/* ==========================================
-          MODAL: SKELETON REPLAY
-          ========================================== */}
-      {replayModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in text-white">
-          <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 space-y-6">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div>
-                <h3 className="font-display font-bold text-lg text-white">
-                  {loadingReplay ? 'Loading Telemetry...' : replaySession?.title || 'Skeletal Replay Review'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {loadingReplay 
-                    ? 'Fetching keypoint sequences from database...' 
-                    : `Session ID: #${replaySession?.id} | ${replaySession?.created_at ? new Date(replaySession.created_at).toLocaleString() : ''}`}
-                </p>
-              </div>
-              <button 
-                onClick={() => {
-                  setReplayModalOpen(false);
-                  setIsPlaying(false);
-                }} 
-                className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-all"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {loadingReplay ? (
-              <div className="h-96 flex flex-col items-center justify-center text-slate-400 gap-3">
-                <Clock className="h-10 w-10 animate-spin text-primary-500" />
-                <span className="text-sm font-medium">Reconstructing 3D joint telemetry...</span>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Canvas Display Screen */}
-                <div className="flex justify-center bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 relative">
-                  <canvas 
-                    ref={canvasRef} 
-                    width={640} 
-                    height={480} 
-                    className="w-full max-w-[640px] aspect-video block" 
-                  />
-                  {replayFrames.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-slate-950/90 text-slate-400 text-sm">
-                      No telemetry frames recorded for this session.
-                    </div>
-                  )}
-                </div>
-
-                {/* Playback Progress Slider */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs text-slate-400 font-mono">
-                    <span>Frame: {currentFrameIndex + 1} / {replayFrames.length}</span>
-                    <span>
-                      {replayFrames.length > 0 
-                        ? `${(replayFrames[currentFrameIndex]?.timestamp_millis / 1000).toFixed(1)}s / ${(replayFrames[replayFrames.length - 1]?.timestamp_millis / 1000).toFixed(1)}s` 
-                        : '0.0s'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <input 
-                      type="range"
-                      min={0}
-                      max={replayFrames.length > 0 ? replayFrames.length - 1 : 0}
-                      value={currentFrameIndex}
-                      onChange={(e) => {
-                        setCurrentFrameIndex(parseInt(e.target.value));
-                        setIsPlaying(false);
-                      }}
-                      className="flex-1 accent-primary-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Control Panel */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800">
-                  <div className="flex items-center gap-4">
-                    {/* Play/Pause Button */}
-                    <button 
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      disabled={replayFrames.length === 0}
-                      className="p-3 bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all text-white shadow-lg flex items-center justify-center"
-                      title={isPlaying ? 'Pause' : 'Play'}
-                    >
-                      {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                    </button>
-
-                    {/* Reset/Restart Button */}
-                    <button 
-                      onClick={() => {
-                        setCurrentFrameIndex(0);
-                        setIsPlaying(false);
-                      }}
-                      disabled={replayFrames.length === 0}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-xs font-semibold rounded-xl transition-all"
-                    >
-                      Reset
-                    </button>
-                  </div>
-
-                  {/* Metrics Summary Box */}
-                  <div className="flex gap-6 text-center text-xs">
-                    <div>
-                      <span className="text-slate-500 uppercase tracking-widest text-[9px] block">Range of Motion</span>
-                      <span className="text-white font-bold text-sm">
-                        {replaySession?.range_of_motion || replaySession?.rom || 'N/A'}°
-                      </span>
-                    </div>
-                    <div className="border-l border-slate-800 pl-6">
-                      <span className="text-slate-500 uppercase tracking-widest text-[9px] block">Form Score</span>
-                      <span className="text-accent-500 font-bold text-sm">
-                        {replaySession?.avg_score || replaySession?.score || 'N/A'}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Speed Selector */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 uppercase font-semibold">Speed:</span>
-                    <select 
-                      value={playbackSpeed}
-                      onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                      className="bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
-                    >
-                      <option value={0.5}>0.5x</option>
-                      <option value={1.0}>1.0x (Normal)</option>
-                      <option value={1.5}>1.5x</option>
-                      <option value={2.0}>2.0x</option>
-                    </select>
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };

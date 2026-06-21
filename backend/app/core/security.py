@@ -17,22 +17,56 @@ def verify_supabase_jwt(credentials: HTTPAuthorizationCredentials = Depends(secu
     Decodes and verifies the Supabase Auth JWT.
     """
     token = credentials.credentials
+    
+    # 1. Support sandbox/demo mock tokens in development mode
+    if token.startswith("mock-token."):
+        if settings.ENVIRONMENT != "development":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Mock authentication is only permitted in development mode."
+            )
+        import base64
+        import json
+        try:
+            parts = token.split(".")
+            # Base64 padding correction if needed
+            payload_b64 = parts[1]
+            payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
+            payload_str = base64.b64decode(payload_b64).decode("utf-8")
+            payload = json.loads(payload_str)
+            
+            user_id = payload.get("sub")
+            email = payload.get("email")
+            app_metadata = payload.get("app_metadata", {})
+            role = app_metadata.get("role") or "patient"
+            
+            if not user_id:
+                raise ValueError("Missing subject field (sub).")
+                
+            return UserPayload(id=user_id, email=email, role=role)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid mock token format: {str(e)}"
+            )
+
     try:
-        # Supabase JWTs are encoded with HS256 using the JWT Secret.
-        # The default audience is usually "authenticated".
+        # 2. Check if we should bypass signature check during local dev setup
+        bypass_signature = (
+            settings.ENVIRONMENT == "development" 
+            and (not settings.SUPABASE_JWT_SECRET or settings.SUPABASE_JWT_SECRET == "your-supabase-jwt-secret-from-dashboard")
+        )
+        
         payload = jwt.decode(
             token,
             settings.SUPABASE_JWT_SECRET,
             algorithms=["HS256"],
-            options={"verify_aud": False}  # Can be toggled based on config
+            options={"verify_signature": not bypass_signature, "verify_aud": False}
         )
         
         user_id = payload.get("sub")
         email = payload.get("email")
         
-        # User roles can be stored in Supabase's app_metadata, user_metadata, 
-        # or managed via our internal database.
-        # We will check both metadata and default to patient.
         app_metadata = payload.get("app_metadata", {})
         user_metadata = payload.get("user_metadata", {})
         

@@ -1,77 +1,54 @@
-# Dependency Directories
-node_modules/
-jspm_packages/
-web_drivers/
-
-# Python Virtual Environments
+# Python virtual environments and caches
 .venv/
 venv/
-backend.venv/
 env/
-ENV/
-pyenv/
-custom_venv/
-Active_State/
-
-# Python Compilation Cache
+backend.venv/
+backend/.venv/
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
 *.pyd
 .pytest_cache/
 .mypy_cache/
-.ruff_cache/
-.ipydb_cache/
-.coverage
-htmlcov/
 
-# Environment Variables & Sensitive Credentials
+# Node modules and package manager locks
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files and credentials (secrets)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-*.env
+backend/.env
+frontend/.env
 *.pem
 *.key
-*.cert
-certificates/
 
-# SQLite & Local Testing Databases
+# Build output and bundle targets
+frontend/dist/
+frontend/build/
+out/
+build/
+
+# Local database files
 *.db
 *.sqlite
-*.sqlite3
-test.db
+backend/test.db
 
-# IDE & Editor Settings
+# IDE and Editor settings
 .vscode/
 .idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-.project
-.classpath
-.settings/
+*.swp
 
-# Production Builds
-dist/
-build/
-out/
-.next/
-.nuxt/
-
-# Logs & Diagnostics
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-*.log
-
-# OS Generated Files
+# OS generated files
 .DS_Store
-.DS_Store?
-ehthumbs.db
 Thumbs.db

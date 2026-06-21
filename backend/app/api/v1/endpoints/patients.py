@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
 from app.core.security import require_patient, UserPayload
-from app.models.models import Patient, MotionSession as DbSession, MotionFrame, ExerciseAssignment, Exercise
+from app.models.models import Patient, MotionSession as DbSession, MotionMetric, ExerciseAssignment, Exercise
 from app.schemas.schemas import (
     PatientResponse, 
     PatientUpdate, 
@@ -75,11 +75,13 @@ def upload_motion_session(
             detail="Patient record not found. Please sync your account."
         )
 
-    # Resolve exercise rules by matching exercise title if possible
+    # Resolve exercise_id and rules by matching exercise title if possible
+    exercise_id = None
     rules = []
     if session_data.title:
         exercise = db.query(Exercise).filter(Exercise.name == session_data.title).first()
         if exercise:
+            exercise_id = exercise.id
             rules = exercise.rules
 
     # Extract ROM and other metrics first to evaluate rules
@@ -93,24 +95,34 @@ def upload_motion_session(
     # Create the session database record
     db_session = DbSession(
         patient_id=current_user.id,
-        exercise_name=session_data.title,
-        form_score=session_data.avg_score,
-        rom=rom,
-        speed=speed,
-        symmetry=symmetry
+        exercise_id=exercise_id,
+        score=session_data.avg_score,
+        status=session_status
     )
     db.add(db_session)
     db.flush()  # Retrieve session id
 
-    # Create individual frame records in motion_frames
-    for idx, tele in enumerate(session_data.telemetry_data):
-        db_frame = MotionFrame(
-            session_id=db_session.id,
-            frame_number=idx + 1,
-            timestamp_ms=tele.timestamp_millis,
-            landmarks_json=tele.joint_coordinates
-        )
-        db.add(db_frame)
+    # Create motion capture coordinate metrics
+    rom = session_data.range_of_motion or (session_data.metrics_summary.get("rom") if session_data.metrics_summary else 0.0)
+    speed = (session_data.metrics_summary.get("speed") if session_data.metrics_summary else 0.0) or 0.0
+    symmetry = (session_data.metrics_summary.get("symmetry") if session_data.metrics_summary else 0.0) or 0.0
+
+    frames_list = []
+    for tele in session_data.telemetry_data:
+        frames_list.append({
+            "timestamp_millis": tele.timestamp_millis,
+            "joint_coordinates": tele.joint_coordinates,
+            "sensor_signals": tele.sensor_signals
+        })
+
+    db_metric = MotionMetric(
+        session_id=db_session.id,
+        rom=rom,
+        speed=speed,
+        symmetry=symmetry,
+        telemetry_frames={"frames": frames_list}
+    )
+    db.add(db_metric)
 
     db.commit()
     db.refresh(db_session)
@@ -124,7 +136,7 @@ def list_my_sessions(
     """
     List all motion tracking sessions recorded by the authenticated patient.
     """
-    sessions = db.query(DbSession).filter(DbSession.patient_id == current_user.id).order_by(DbSession.created_at.desc()).all()
+    sessions = db.query(DbSession).filter(DbSession.patient_id == current_user.id).order_by(DbSession.completed_at.desc()).all()
     return sessions
 
 @router.get("/sessions/{session_id}", response_model=SessionDetailResponse)

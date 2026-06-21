@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user, UserPayload
-from app.models.models import User, Patient, Admin
+from app.models.models import User, Patient
 from app.schemas.schemas import UserResponse, UserCreate
 
 router = APIRouter()
@@ -43,9 +43,11 @@ def sync_user(
     db_user = db.query(User).filter(User.id == user_data.id).first()
     if db_user:
         # Update existing user values if necessary
-        db_user.first_name = user_data.first_name or db_user.first_name
-        db_user.last_name = user_data.last_name or db_user.last_name
         db_user.role = user_data.role
+        if db_user.patient_profile:
+            full_name = f"{user_data.first_name or ''} {user_data.last_name or ''}".strip()
+            if full_name:
+                db_user.patient_profile.full_name = full_name
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -54,19 +56,15 @@ def sync_user(
     new_user = User(
         id=user_data.id,
         email=user_data.email,
-        role=user_data.role,
-        first_name=user_data.first_name,
-        last_name=user_data.last_name
+        role=user_data.role
     )
     db.add(new_user)
     db.flush() # get id validation
 
     # Create role-specific profile
-    if user_data.role.lower() == "admin":
-        admin_profile = Admin(id=new_user.id)
-        db.add(admin_profile)
-    else:
-        patient_profile = Patient(id=new_user.id)
+    if user_data.role.lower() != "admin":
+        full_name = f"{user_data.first_name or ''} {user_data.last_name or ''}".strip() or "New Patient"
+        patient_profile = Patient(user_id=new_user.id, full_name=full_name)
         db.add(patient_profile)
 
     db.commit()
