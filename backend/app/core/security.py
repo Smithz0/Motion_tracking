@@ -30,7 +30,7 @@ def verify_supabase_jwt(credentials: HTTPAuthorizationCredentials = Depends(secu
         try:
             parts = token.split(".")
             # Base64 padding correction if needed
-            payload_b64 = parts[1]
+            payload_b64 = parts[2]
             payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
             payload_str = base64.b64decode(payload_b64).decode("utf-8")
             payload = json.loads(payload_str)

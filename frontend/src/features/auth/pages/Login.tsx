@@ -36,11 +36,11 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSandboxLogin = (role: 'admin' | 'patient') => {
+  const handleSandboxLogin = async (role: 'admin' | 'patient') => {
     if (role === 'admin') {
-      signInMock('admin', 'demo.clinician@chosenmotion.com', 'Marcus', 'Aurelius');
+      await signInMock('admin', 'demo.clinician@chosenmotion.com', 'Marcus', 'Aurelius');
     } else {
-      signInMock('patient', 'demo.patient@chosenmotion.com', 'Sarah', 'Connor');
+      await signInMock('patient', 'demo.patient@chosenmotion.com', 'Sarah', 'Connor');
     }
     navigate('/');
   };

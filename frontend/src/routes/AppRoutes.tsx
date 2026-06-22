@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Login from '@/features/auth/pages/Login';
 import Register from '@/features/auth/pages/Register';
+import Landing from '@/features/auth/pages/Landing';
 import AdminDashboard from '@/features/admin/pages/AdminDashboard';
 import PatientDashboard from '@/features/patient/pages/PatientDashboard';
 import TrackerSkeleton from '@/features/motion-tracking/components/TrackerSkeleton';
@@ -126,7 +127,7 @@ const AppRoutes: React.FC = () => {
               <Loader2 className="h-10 w-10 text-primary-500 animate-spin" />
             </div>
           ) : !user ? (
-            <Navigate to="/login" replace />
+            <Landing />
           ) : (
             <Navigate to={profile?.role === 'admin' ? '/admin' : '/patient'} replace />
           )

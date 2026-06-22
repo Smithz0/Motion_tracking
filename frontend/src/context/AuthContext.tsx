@@ -20,7 +20,7 @@ interface AuthContextType {
   role: 'admin' | 'patient' | null;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  signInMock: (role: 'admin' | 'patient', email: string, firstName?: string, lastName?: string) => void;
+  signInMock: (role: 'admin' | 'patient', email: string, firstName?: string, lastName?: string) => Promise<void>;
   isMock: boolean;
 }
 
@@ -110,28 +110,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInMock = (
+  const signInMock = async (
     role: 'admin' | 'patient',
     email: string,
     firstName?: string,
     lastName?: string
   ) => {
     setLoading(true);
+    const mockId = `mock-uuid-${role}-demo`;
     const mockUser = {
-      id: `mock-uuid-${role}-${Date.now()}`,
+      id: mockId,
       email,
       user_metadata: { first_name: firstName, last_name: lastName, role },
     } as unknown as User;
 
     localStorage.setItem('chosen_motion_mock_user', JSON.stringify(mockUser));
+
+    // Sync the mock user with the backend database so their profile and patient/admin record exist!
+    try {
+      await syncUserWithBackend({
+        id: mockId,
+        email: email,
+        role: role,
+        first_name: firstName,
+        last_name: lastName,
+      });
+    } catch (err) {
+      console.warn('Failed to sync mock user with backend:', err);
+    }
+
     setUser(mockUser);
-    setProfile({
-      id: mockUser.id,
-      email: mockUser.email || email,
-      role,
-      firstName,
-      lastName,
+
+    // Load the profile from backend so we get the generated patientId/adminId
+    await loadProfile(mockUser).catch((err) => {
+      console.warn('Failed to load profile for mock user:', err);
+      setProfile({
+        id: mockUser.id,
+        email: mockUser.email || email,
+        role,
+        firstName,
+        lastName,
+      });
     });
+
     setIsMock(true);
     setLoading(false);
   };
@@ -142,17 +163,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedMockUser) {
       try {
         const parsedUser = JSON.parse(savedMockUser) as User;
-        setUser(parsedUser);
-        setProfile({
-          id: parsedUser.id,
-          email: parsedUser.email || '',
-          role: parsedUser.user_metadata?.role || 'patient',
-          firstName: parsedUser.user_metadata?.first_name,
-          lastName: parsedUser.user_metadata?.last_name,
-        });
-        setIsMock(true);
-        setLoading(false);
-        return;
+        
+        // Self-heal: clear non-static legacy mock IDs to switch to static ones
+        if (parsedUser.id && !parsedUser.id.endsWith('-demo')) {
+          localStorage.removeItem('chosen_motion_mock_user');
+        } else {
+          setUser(parsedUser);
+          setProfile({
+            id: parsedUser.id,
+            email: parsedUser.email || '',
+            role: parsedUser.user_metadata?.role || 'patient',
+            firstName: parsedUser.user_metadata?.first_name,
+            lastName: parsedUser.user_metadata?.last_name,
+          });
+          setIsMock(true);
+          setLoading(false);
+          return;
+        }
       } catch (err) {
         console.warn('Failed to parse saved mock user, clearing...', err);
         localStorage.removeItem('chosen_motion_mock_user');
