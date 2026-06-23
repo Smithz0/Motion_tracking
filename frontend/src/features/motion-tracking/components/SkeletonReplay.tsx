@@ -20,14 +20,106 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
   const [currentFrameIdx, setCurrentFrameIdx] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1); // 0.5x, 1x, 2x
+  const [repsAtFrame, setRepsAtFrame] = useState<number[]>([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
+  // Precompute repetition counts per frame for instant timeline feedback
+  useEffect(() => {
+    if (frames.length === 0) return;
+    const repsList: number[] = [];
+    let count = 0;
+    let state = 'standing';
+    let minKnee = 180;
+
+    for (let i = 0; i < frames.length; i++) {
+      const f = frames[i];
+      const c = f.joint_coordinates;
+      
+      const pxAngle = (a: number[], b: number[], cPoint: number[]) => {
+        if (!a || !b || !cPoint) return 180;
+        const baX = a[0] - b[0];
+        const baY = a[1] - b[1];
+        const bcX = cPoint[0] - b[0];
+        const bcY = cPoint[1] - b[1];
+        const dot = baX * bcX + baY * bcY;
+        const magBA = Math.sqrt(baX * baX + baY * baY);
+        const magBC = Math.sqrt(bcX * bcX + bcY * bcY);
+        if (magBA === 0 || magBC === 0) return 180;
+        const cos = dot / (magBA * magBC);
+        return Math.round((Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI);
+      };
+
+      const kl = c.knee_l ? pxAngle(c.hip_l, c.knee_l, c.ankle_l) : 180;
+      const kr = c.knee_r ? pxAngle(c.hip_r, c.knee_r, c.ankle_r) : 180;
+      const kneeAvg = (kl + kr) / 2;
+
+      if (exerciseName.toLowerCase().includes('squat')) {
+        if (state === 'standing') {
+          if (kneeAvg < 160) {
+            state = 'descending';
+            minKnee = kneeAvg;
+          }
+        } else if (state === 'descending') {
+          if (kneeAvg < minKnee) minKnee = kneeAvg;
+          if (kneeAvg <= 110) {
+            state = 'bottom';
+          }
+        } else if (state === 'bottom') {
+          if (kneeAvg < minKnee) minKnee = kneeAvg;
+          if (kneeAvg > minKnee + 10) {
+            state = 'ascending';
+          }
+        } else if (state === 'ascending') {
+          if (kneeAvg >= 165) {
+            state = 'standing';
+            count += 1;
+          }
+        }
+      } else {
+        const isShoulder = exerciseName.toLowerCase().includes('shoulder');
+        const isKnee = exerciseName.toLowerCase().includes('knee');
+        const val = isShoulder 
+          ? (c.shoulder_r ? pxAngle(c.hip_r, c.shoulder_r, c.elbow_r) : 0)
+          : isKnee 
+            ? (c.knee_r ? pxAngle(c.hip_r, c.knee_r, c.ankle_r) : 0)
+            : (c.elbow_r ? pxAngle(c.shoulder_r, c.elbow_r, c.wrist_r) : 0);
+
+        if (isShoulder) {
+          if (val > 95 && state === 'extended') {
+            state = 'flexed';
+          } else if (val < 40 && state === 'flexed') {
+            state = 'extended';
+            count += 1;
+          }
+        } else if (isKnee) {
+          if (val > 140 && state === 'flexed') {
+            state = 'extended';
+            count += 1;
+          } else if (val < 90 && state === 'extended') {
+            state = 'flexed';
+          }
+        } else {
+          if (val < 55 && state === 'extended') {
+            state = 'flexed';
+          } else if (val > 130 && state === 'flexed') {
+            state = 'extended';
+            count += 1;
+          }
+        }
+      }
+      repsList.push(count);
+    }
+    setRepsAtFrame(repsList);
+  }, [frames, exerciseName]);
+
   // Determine active joint based on exercise name
   const getActiveJointDetails = () => {
     const name = exerciseName.toLowerCase();
-    if (name.includes('shoulder')) {
+    if (name.includes('squat')) {
+      return { type: 'Squat', keyL: 'knee_l', keyR: 'knee_r', label: 'Knee Flexion (Squat)' };
+    } else if (name.includes('shoulder')) {
       return { type: 'Shoulder', keyL: 'shoulder_l', keyR: 'shoulder_r', label: 'Shoulder Flexion' };
     } else if (name.includes('knee')) {
       return { type: 'Knee', keyL: 'knee_l', keyR: 'knee_r', label: 'Knee Extension' };
@@ -74,7 +166,6 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
 
     const px = (jointName: string) => {
       const pt = coords[jointName];
-      // Mirror coords horizontally if necessary, but typical coordinates are normalized 0-1
       return pt ? { x: pt[0] * W, y: pt[1] * H } : null;
     };
 
@@ -111,6 +202,21 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
       }
     };
 
+    // Draw head circle
+    const sL = px('shoulder_l');
+    const sR = px('shoulder_r');
+    if (sL && sR) {
+      const headX = (sL.x + sR.x) / 2;
+      const headY = (sL.y + sR.y) / 2 - Math.abs(sL.x - sR.x) * 0.45;
+      ctx.beginPath();
+      ctx.arc(headX, headY, Math.abs(sL.x - sR.x) * 0.25, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(203,213,225,0.9)';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
     // Draw bones
     // Torso (Slate)
     drawBone('shoulder_l', 'shoulder_r', 'rgba(203,213,225,0.9)', 4.5);
@@ -118,11 +224,11 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
     drawBone('shoulder_r', 'hip_r', 'rgba(203,213,225,0.9)', 4.5);
     drawBone('hip_l', 'hip_r', 'rgba(203,213,225,0.9)', 4.5);
 
-    // Left Arm (Cyan)
     const isShoulderActive = activeJoint.type === 'Shoulder';
     const isElbowActive = activeJoint.type === 'Elbow';
-    const isKneeActive = activeJoint.type === 'Knee';
+    const isKneeActive = activeJoint.type === 'Knee' || activeJoint.type === 'Squat';
 
+    // Left Arm (Cyan)
     drawBone('shoulder_l', 'elbow_l', '#22d3ee', 4);
     drawBone('elbow_l', 'wrist_l', '#22d3ee', 3.5);
 
@@ -139,17 +245,16 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
     drawBone('knee_r', 'ankle_r', '#fb7185', 3.5);
 
     // Draw joints
-    // Torso joints
     drawJoint('shoulder_l', '#22d3ee', 6, isShoulderActive);
     drawJoint('shoulder_r', '#a78bfa', 6, isShoulderActive);
     drawJoint('hip_l', '#34d399', 6);
     drawJoint('hip_r', '#fb7185', 6);
 
-    // Limbs joints
     drawJoint('elbow_l', '#22d3ee', 5, isElbowActive);
     drawJoint('elbow_r', '#a78bfa', 5, isElbowActive);
     drawJoint('wrist_l', '#22d3ee', 4);
     drawJoint('wrist_r', '#a78bfa', 4);
+    
     drawJoint('knee_l', '#34d399', 5, isKneeActive);
     drawJoint('knee_r', '#fb7185', 5, isKneeActive);
     drawJoint('ankle_l', '#34d399', 4);
@@ -222,6 +327,17 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
     return 0;
   };
 
+  const getTorsoAngle = () => {
+    const s_r = coords.shoulder_r;
+    const h_r = coords.hip_r;
+    if (s_r && h_r) {
+      const dy = Math.abs(s_r[1] - h_r[1]);
+      const dx = Math.abs(s_r[0] - h_r[0]);
+      return dy > 0 ? Math.round((Math.atan2(dx, dy) * 180) / Math.PI) : 0;
+    }
+    return 0;
+  };
+
   const angles = {
     shoulder_l: getAngle('shoulder', 'l'),
     shoulder_r: getAngle('shoulder', 'r'),
@@ -229,7 +345,50 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
     elbow_r: getAngle('elbow', 'r'),
     knee_l: getAngle('knee', 'l'),
     knee_r: getAngle('knee', 'r'),
+    hip_l: getAngle('hip', 'l'),
+    hip_r: getAngle('hip', 'r'),
+    torso: getTorsoAngle()
   };
+
+  // Speed calculation for current frame (degrees / sec)
+  const getCurrentSpeed = () => {
+    if (currentFrameIdx === 0) return 0;
+    const prevFrame = frames[currentFrameIdx - 1];
+    const dt = (currentFrame.timestamp_millis - prevFrame.timestamp_millis) / 1000;
+    if (dt <= 0) return 0;
+    const curK = (angles.knee_l + angles.knee_r) / 2;
+    const prevC = prevFrame.joint_coordinates;
+    const prevK = prevC.knee_l ? (calculateJointAngle(prevC.hip_l, prevC.knee_l, prevC.ankle_l) + calculateJointAngle(prevC.hip_r, prevC.knee_r, prevC.ankle_r)) / 2 : 180;
+    return Math.round(Math.abs(curK - prevK) / dt);
+  };
+
+  const getSymmetry = () => {
+    const diff = Math.abs(angles.knee_l - angles.knee_r);
+    return Math.max(10, Math.min(100, Math.round(100 - diff * 3)));
+  };
+
+  const getActiveErrors = () => {
+    const errorsList: string[] = [];
+    if (coords.knee_l && coords.knee_r && coords.ankle_l && coords.ankle_r) {
+      const knee_dist = Math.abs(coords.knee_l[0] - coords.knee_r[0]);
+      const ankle_dist = Math.abs(coords.ankle_l[0] - coords.ankle_r[0]);
+      if (ankle_dist > 0 && (knee_dist / ankle_dist) < 0.82) {
+        errorsList.push("Knees Caving In");
+      }
+    }
+    if (angles.torso > 35) {
+      errorsList.push("Torso Lean");
+    }
+    if (Math.abs(angles.knee_l - angles.knee_r) > 15) {
+      errorsList.push("Uneven Weight Distribution");
+    }
+    return errorsList;
+  };
+
+  const activeErrors = getActiveErrors();
+  const accuracy = currentFrame.sensor_signals?.confidence 
+    ? Math.round(currentFrame.sensor_signals.confidence * 100) 
+    : 95;
 
   const formattedTime = (ms: number) => {
     const totalSeconds = ms / 1000;
@@ -242,7 +401,7 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
     <div className="relative flex flex-col items-center w-full rounded-2xl bg-slate-950 p-4 border border-slate-850 shadow-2xl overflow-hidden">
       
       {/* Title & Speed HUD overlay */}
-      <div className="absolute top-6 left-6 z-10 flex flex-col gap-1 pointer-events-none">
+      <div className="absolute top-6 left-6 z-10 flex flex-col gap-1 pointer-events-none text-left">
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Telemetry Replay</span>
         <h3 className="text-lg font-bold text-white tracking-tight">{exerciseName}</h3>
       </div>
@@ -259,46 +418,41 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
           ref={canvasRef}
           width={640}
           height={480}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain animate-fade-in"
         />
         
         {/* Joint angles sidebar HUD */}
         <div className="absolute bottom-4 left-4 bg-slate-950/85 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-left flex flex-col gap-1.5 font-mono text-xs w-48 text-slate-300">
           <div className="text-[10px] text-slate-500 font-bold uppercase mb-0.5 tracking-wider">Live Joint Angles</div>
           <div className="flex justify-between items-center">
-            <span>L Shoulder:</span>
-            <span className="text-cyan-400 font-bold">{angles.shoulder_l}°</span>
+            <span>Torso Lean:</span>
+            <span className="text-orange-400 font-bold">{angles.torso}°</span>
           </div>
           <div className="flex justify-between items-center">
-            <span>R Shoulder:</span>
-            <span className="text-violet-400 font-bold">{angles.shoulder_r}°</span>
+            <span>L Hip / R Hip:</span>
+            <span className="text-cyan-400 font-bold">{angles.hip_l}° / {angles.hip_r}°</span>
           </div>
           <div className="flex justify-between items-center">
-            <span>L Elbow:</span>
-            <span className="text-cyan-400 font-bold">{angles.elbow_l}°</span>
+            <span>L Knee / R Knee:</span>
+            <span className="text-emerald-400 font-bold">{angles.knee_l}° / {angles.knee_r}°</span>
           </div>
           <div className="flex justify-between items-center">
-            <span>R Elbow:</span>
-            <span className="text-violet-400 font-bold">{angles.elbow_r}°</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>L Knee:</span>
-            <span className="text-emerald-400 font-bold">{angles.knee_l}°</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>R Knee:</span>
-            <span className="text-rose-400 font-bold">{angles.knee_r}°</span>
+            <span>L Elbow / R Elbow:</span>
+            <span className="text-violet-400 font-bold">{angles.elbow_l}° / {angles.elbow_r}°</span>
           </div>
         </div>
 
         {/* Selected joint telemetry HUD */}
         <div className="absolute bottom-4 right-4 bg-slate-950/85 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-right flex flex-col gap-1 font-mono text-xs text-slate-300">
-          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Target Joint Angle</div>
-          <div className="text-base font-extrabold text-white">
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Active Metric</div>
+          <div className="text-xs font-bold text-white leading-tight">
             {activeJoint.label}:
           </div>
-          <div className="text-xl font-black text-cyan-400">
-            {angles[activeJoint.keyR as keyof typeof angles] || 0}°
+          <div className="text-lg font-black text-cyan-400">
+            {activeJoint.type === 'Squat' 
+              ? `${Math.round((angles.knee_l + angles.knee_r)/2)}°`
+              : `${angles[activeJoint.keyR as keyof typeof angles] || 0}°`
+            }
           </div>
         </div>
       </div>
@@ -363,6 +517,54 @@ export const SkeletonReplay: React.FC<SkeletonReplayProps> = ({ frames, exercise
           </div>
         </div>
       </div>
+
+      {/* REPLAY DISPLAY PANEL */}
+      <div className="w-full max-w-2xl mt-5 p-4 rounded-xl bg-slate-900 border border-slate-800/80 text-left">
+        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Replay Telemetry Deck</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Current Frame</span>
+            <span className="text-white font-bold block mt-1">#{currentFrameIdx + 1}</span>
+          </div>
+          
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Current Rep</span>
+            <span className="text-cyan-400 font-bold block mt-1">{repsAtFrame[currentFrameIdx] ?? 0}</span>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Knee / Hip Angle</span>
+            <span className="text-emerald-400 font-bold block mt-1">
+              {Math.round((angles.knee_l + angles.knee_r) / 2)}° / {Math.round((angles.hip_l + angles.hip_r) / 2)}°
+            </span>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Torso Angle</span>
+            <span className="text-orange-400 font-bold block mt-1">{angles.torso}°</span>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Symmetry / Accuracy</span>
+            <span className="text-white font-bold block mt-1">{getSymmetry()}% / {accuracy}%</span>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850">
+            <span className="text-[10px] text-slate-500 block">Current Speed</span>
+            <span className="text-cyan-400 font-bold block mt-1">{getCurrentSpeed()} °/s</span>
+          </div>
+
+
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-850 col-span-1 md:col-span-3">
+            <span className="text-[10px] text-slate-500 block">Active Form Alerts</span>
+            <span className={`font-bold block mt-1 ${activeErrors.length > 0 ? 'text-red-400' : 'text-green-400'}`}>
+              {activeErrors.length > 0 ? activeErrors.join(', ') : 'None - Excellent posture'}
+            </span>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
+

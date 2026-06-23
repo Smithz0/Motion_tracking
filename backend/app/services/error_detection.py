@@ -49,8 +49,21 @@ def analyze_session_frames(
             "max_rom": 0.0
         }
         
-    # Determine joint tracking details
     exercise_lower = exercise_name.lower()
+    if "squat" in exercise_lower:
+        from app.services.exercise_engines import get_exercise_engine
+        engine = get_exercise_engine(exercise_name)
+        result = engine.process_frames(frames)
+        metrics = result["metrics"]
+        return {
+            "accuracy_score": metrics["accuracy_score"],
+            "detected_errors": result["detected_errors"],
+            "smoothness": metrics["smoothness"],
+            "repetitions": metrics["repetitions"],
+            "max_rom": metrics["max_rom"]
+        }
+
+    # Determine joint tracking details
     if "shoulder" in exercise_lower:
         joint_type = "shoulder"
         target_rom = target_rom or 150.0
@@ -60,6 +73,7 @@ def analyze_session_frames(
     else:
         joint_type = "elbow"
         target_rom = target_rom or 130.0
+
 
     # Lists to store joint coordinates for analysis
     angles = []

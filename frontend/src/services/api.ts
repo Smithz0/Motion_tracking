@@ -268,3 +268,33 @@ export async function deleteExercise(exerciseId: number) {
     method: 'DELETE',
   });
 }
+
+// ==========================================
+// Squat Live Tracking APIs
+// ==========================================
+
+export async function startSquatSession() {
+  return request('/exercise/squat/start', {
+    method: 'POST',
+  });
+}
+
+export async function submitSquatFrame(data: {
+  session_id: number;
+  frame_number: number;
+  timestamp_ms: number;
+  joint_coordinates: Record<string, number[]>;
+}) {
+  return request('/exercise/squat/frame', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function endSquatSession(sessionId: number) {
+  return request('/exercise/squat/end', {
+    method: 'POST',
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+}
+
