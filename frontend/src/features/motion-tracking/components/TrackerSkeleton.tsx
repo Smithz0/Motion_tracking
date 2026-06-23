@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { uploadMotionSession } from '@/services/api';
+import { uploadMotionSession, startSquatSession, submitSquatFrame, endSquatSession } from '@/services/api';
 import MotionTracking from './MotionTracking';
 import { PoseBuffer, calculateAngle } from '../utils/poseProcessor';
 import { 
@@ -34,8 +34,13 @@ const TrackerSkeleton: React.FC = () => {
     hip_r: 0,
     knee_l: 0,
     knee_r: 0,
+    torso: 0,
   });
   const [liveStatus, setLiveStatus] = useState<'success' | 'warning' | 'idle'>('idle');
+  
+  const squatSessionIdRef = useRef<number | null>(null);
+  const frameCounterRef = useRef<number>(0);
+
   
   // Rules setup (use passed rules or construct fallback default rules)
   const rules = location.state?.rules || [
@@ -82,7 +87,7 @@ const TrackerSkeleton: React.FC = () => {
     if (!landmarks || landmarks.length === 0) return;
     lastLandmarks.current = landmarks;
     
-    // Calculate all 8 live angles (4 joints * 2 sides)
+    // Calculate all 8 live angles (4 joints * 2 sides) + torso angle
     const angles = {
       shoulder_l: calculateAngle('shoulder', landmarks, 'left'),
       shoulder_r: calculateAngle('shoulder', landmarks, 'right'),
@@ -92,13 +97,25 @@ const TrackerSkeleton: React.FC = () => {
       hip_r: calculateAngle('hip', landmarks, 'right'),
       knee_l: calculateAngle('knee', landmarks, 'left'),
       knee_r: calculateAngle('knee', landmarks, 'right'),
+      torso: 0
     };
+    
+    const s_r = landmarks[12];
+    const h_r = landmarks[24];
+    if (s_r && h_r) {
+      const dy = Math.abs(s_r.y - h_r.y);
+      const dx = Math.abs(s_r.x - h_r.x);
+      angles.torso = dy > 0 ? Math.round((Math.atan2(dx, dy) * 180) / Math.PI) : 0;
+    }
+    
     setLiveAngles(angles);
 
     let calculatedRom = 0;
     
     // Check which exercise is selected to track the corresponding joint vector
-    if (exerciseName.toLowerCase().includes('shoulder')) {
+    if (exerciseName.toLowerCase().includes('squat')) {
+      calculatedRom = Math.round((angles.knee_l + angles.knee_r) / 2);
+    } else if (exerciseName.toLowerCase().includes('shoulder')) {
       calculatedRom = angles.shoulder_r;
       
       // Rep counting: flexion (lifted > 95 deg), extension (lowered < 40 deg)
@@ -133,19 +150,23 @@ const TrackerSkeleton: React.FC = () => {
 
     setRom(calculatedRom);
 
+    // Skip client-side coaching for Squats since backend handles it
+    if (exerciseName.toLowerCase().includes('squat')) {
+      const confidence = landmarks.reduce((acc: number, l: any) => acc + (l.visibility || 0), 0) / landmarks.length;
+      setScore(Math.round(confidence * 100));
+      return;
+    }
+
     // 1. Calculate live velocity (speed in deg/sec)
     const now = performance.now();
     let speedDegPerSec = 0;
     if (lastRomTime.current > 0) {
       const timeDiffSec = (now - lastRomTime.current) / 1000;
-      if (timeDiffSec > 0.03) { // limit updates to >30ms intervals to prevent noise
+      if (timeDiffSec > 0.03) {
         const romDiff = Math.abs(calculatedRom - lastRomVal.current);
         const rawSpeed = romDiff / timeDiffSec;
-        
-        // Apply exponential moving average to smooth out high frequency tracking noise
         speedDegPerSec = Math.round(lastSpeedVal.current * 0.7 + rawSpeed * 0.3);
         lastSpeedVal.current = speedDegPerSec;
-        
         lastRomVal.current = calculatedRom;
         lastRomTime.current = now;
       } else {
@@ -168,30 +189,20 @@ const TrackerSkeleton: React.FC = () => {
     const targetROM = (rules && rules[0] && rules[0].parameters && rules[0].parameters.value) || 120;
 
     if (exerciseName.toLowerCase().includes('shoulder')) {
-      // ROM Check (Shoulder Abduction / Raise target)
       romPassed = calculatedRom >= targetROM;
       romMessage = romPassed ? 'Target ROM met' : 'Raise arm higher';
-      
-      // Alignment Check (Shoulder Abduction requires straight arm)
       alignmentPassed = angles.elbow_r >= 145;
       alignmentMessage = alignmentPassed ? 'Elbow straight' : 'Straighten elbow';
     } 
     else if (exerciseName.toLowerCase().includes('knee')) {
-      // ROM Check (Knee Extension target)
       romPassed = calculatedRom >= targetROM;
       romMessage = romPassed ? 'Leg straight' : 'Raise leg higher';
-      
-      // Alignment Check (Knee Extension: sits straight, hip angle <= 125)
       alignmentPassed = angles.hip_r <= 125;
       alignmentMessage = alignmentPassed ? 'Torso aligned' : 'Keep back straight';
     } 
     else {
-      // Default / Elbow Flexion:
-      // ROM Check (flexion fully bent means angle <= target)
       romPassed = calculatedRom <= targetROM;
       romMessage = romPassed ? 'Full contraction met' : 'Curl arm higher';
-      
-      // Alignment Check (Elbow Flexion: keep shoulder stable, shoulder-hip angle <= 35)
       alignmentPassed = angles.shoulder_r <= 35;
       alignmentMessage = alignmentPassed ? 'Shoulder steady' : 'Keep shoulder steady';
     }
@@ -208,7 +219,7 @@ const TrackerSkeleton: React.FC = () => {
       speedsArray.current.push(speedDegPerSec);
     }
 
-    // 3. Evaluate rules live against calculatedRom (overall ROM check)
+    // 3. Evaluate rules live
     let currentStatus: 'success' | 'warning' | 'idle' = 'idle';
     if (calculatedRom > 0 && rules && rules.length > 0) {
       let allRulesPassed = true;
@@ -240,7 +251,6 @@ const TrackerSkeleton: React.FC = () => {
     }
     setLiveStatus(currentStatus);
 
-    // Calculate dynamic form score based on landmark track confidence
     const confidence = landmarks.reduce((acc: number, l: any) => acc + (l.visibility || 0), 0) / landmarks.length;
     setScore(Math.round(confidence * 100));
   };
@@ -266,10 +276,73 @@ const TrackerSkeleton: React.FC = () => {
   useEffect(() => {
     if (active) {
       startTimeRef.current = Date.now();
-      telemetryTimerRef.current = setInterval(() => {
+      telemetryTimerRef.current = setInterval(async () => {
         if (lastLandmarks.current) {
           const elapsed = Date.now() - startTimeRef.current;
           poseBuffer.current.pushFrame(elapsed, lastLandmarks.current);
+          
+          // Submit frame to Squat Engine if active
+          if (exerciseName.toLowerCase().includes('squat') && squatSessionIdRef.current !== null) {
+            const frames = poseBuffer.current.getFrames();
+            const lastFrame = frames[frames.length - 1];
+            if (lastFrame && lastFrame.joint_coordinates) {
+              try {
+                const feedback = await submitSquatFrame({
+                  session_id: squatSessionIdRef.current,
+                  frame_number: frameCounterRef.current,
+                  timestamp_ms: elapsed,
+                  joint_coordinates: lastFrame.joint_coordinates as Record<string, number[]>
+                });
+                frameCounterRef.current += 1;
+                
+                // Update live feedback from backend SquatEngine
+                setReps(feedback.reps);
+                setLiveStatus(feedback.status === 'success' ? 'success' : 'warning');
+                
+                // Map errors/posture warning codes to feedback elements
+                let alignPassed = true;
+                let alignMsg = "Good posture";
+                let speedPassed = true;
+                let speedMsg = "Controlled pace";
+                let romPassed = true;
+                let romMsg = "Good depth";
+                
+                if (feedback.feedback === "Good Depth") {
+                  romMsg = "Good Depth!";
+                } else if (feedback.feedback === "Go Lower") {
+                  romPassed = false;
+                  romMsg = "Go Lower";
+                }
+                
+                if (feedback.current_error) {
+                  const errType = feedback.current_error.type;
+                  if (errType === "Knees Caving In") {
+                    alignPassed = false;
+                    alignMsg = "Push Your Knees Out";
+                  } else if (errType === "Torso Lean") {
+                    alignPassed = false;
+                    alignMsg = "Keep Your Back Straight";
+                  } else if (errType === "Uneven Weight Distribution") {
+                    alignPassed = false;
+                    alignMsg = "Maintain Balance";
+                  } else if (errType === "Fast Descent" || errType === "Fast Ascent") {
+                    speedPassed = false;
+                    speedMsg = "Slow Down";
+                  }
+                }
+                
+                setFeedbackStatus({
+                  allPassed: alignPassed && speedPassed && romPassed,
+                  rom: { passed: romPassed, message: romMsg },
+                  alignment: { passed: alignPassed, message: alignMsg },
+                  speed: { passed: speedPassed, message: speedMsg }
+                });
+                
+              } catch (err) {
+                console.warn("Failed to stream frame coordinates to SquatEngine", err);
+              }
+            }
+          }
         }
       }, 200);
     } else {
@@ -283,13 +356,25 @@ const TrackerSkeleton: React.FC = () => {
     };
   }, [active]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setActive(true);
     poseBuffer.current.clear();
     speedsArray.current = [];
     setReps(0);
     setRom(0);
     setLiveStatus('idle');
+    frameCounterRef.current = 0;
+    squatSessionIdRef.current = null;
+
+    if (exerciseName.toLowerCase().includes('squat')) {
+      try {
+        const res = await startSquatSession();
+        squatSessionIdRef.current = res.session_id;
+        console.log("Initialized Squat session with ID:", res.session_id);
+      } catch (err) {
+        console.error("Failed to start Squat session:", err);
+      }
+    }
   };
 
   const handleStop = async () => {
@@ -301,6 +386,24 @@ const TrackerSkeleton: React.FC = () => {
     if (frames.length === 0) return;
 
     setSaving(true);
+    
+    // For Squat exercise, complete session via custom end endpoint
+    if (exerciseName.toLowerCase().includes('squat') && squatSessionIdRef.current !== null) {
+      try {
+        await endSquatSession(squatSessionIdRef.current);
+
+        alert('Squat tracking session finalized successfully!');
+        navigate('/patient');
+      } catch (err) {
+        console.error('Failed to end Squat tracking session:', err);
+        alert('Failed to finalize Squat session. Redirected to patient dashboard.');
+        navigate('/patient');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     try {
       const stats = poseBuffer.current.getStats();
       const avgSpeed = speedsArray.current.length > 0
@@ -344,7 +447,10 @@ const TrackerSkeleton: React.FC = () => {
     poseBuffer.current.clear();
     speedsArray.current = [];
     lastLandmarks.current = null;
+    frameCounterRef.current = 0;
+    squatSessionIdRef.current = null;
   };
+
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex flex-col">
@@ -580,7 +686,7 @@ const TrackerSkeleton: React.FC = () => {
 
                   {/* Knee */}
                   <div className={`p-2 rounded-xl border transition-all ${
-                    exerciseName.toLowerCase().includes('knee') 
+                    exerciseName.toLowerCase().includes('knee') || exerciseName.toLowerCase().includes('squat')
                       ? 'bg-primary-950/20 border-primary-500/50' 
                       : 'bg-slate-950/40 border-slate-850/60'
                   }`}>
@@ -589,6 +695,16 @@ const TrackerSkeleton: React.FC = () => {
                       {liveAngles.knee_l}° <span className="text-slate-600">/</span> {liveAngles.knee_r}°
                     </span>
                   </div>
+
+                  {/* Torso (Squat Only) */}
+                  {exerciseName.toLowerCase().includes('squat') && (
+                    <div className="p-2 rounded-xl border transition-all bg-primary-950/20 border-primary-500/50 col-span-2 text-center">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">Torso Angle</span>
+                      <span className="font-mono text-sm font-bold text-slate-200">
+                        {liveAngles.torso}°
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -604,8 +720,14 @@ const TrackerSkeleton: React.FC = () => {
           {/* Safety instructions */}
           <div className="p-3.5 bg-indigo-950/20 border border-indigo-900/30 text-indigo-300 rounded-xl text-[10px] leading-relaxed flex gap-2.5 items-start">
             <AlertCircle className="h-4.5 w-4.5 shrink-0 text-indigo-400" />
-            <p>Ensure your target joint limb is fully visible in the camera view window. Rest immediately if you feel pain.</p>
+            <p>
+              {exerciseName.toLowerCase().includes('squat')
+                ? "Stand sideways to the camera for best accuracy. Keep your back straight and lower your hips until thighs are parallel to the ground."
+                : "Ensure your target joint limb is fully visible in the camera view window. Rest immediately if you feel pain."
+              }
+            </p>
           </div>
+
         </div>
 
       </div>

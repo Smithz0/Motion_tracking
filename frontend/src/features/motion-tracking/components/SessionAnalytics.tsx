@@ -38,13 +38,15 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
 }) => {
   
   // 1. Process current session frames for joint angle time series
-  const activeJointKey = exerciseName.toLowerCase().includes('shoulder') 
-    ? 'shoulder' 
-    : exerciseName.toLowerCase().includes('knee') 
-      ? 'knee' 
-      : 'elbow';
+  const activeJointKey = exerciseName.toLowerCase().includes('squat')
+    ? 'squat'
+    : exerciseName.toLowerCase().includes('shoulder') 
+      ? 'shoulder' 
+      : exerciseName.toLowerCase().includes('knee') 
+        ? 'knee' 
+        : 'elbow';
 
-  const calculateJointAngleDeg = (coords: Record<string, number[]>) => {
+  const calculateAngleForJoint = (coords: Record<string, number[]>, joint: 'shoulder' | 'elbow' | 'hip' | 'knee', side: 'l' | 'r' = 'r') => {
     const calculateAngle = (a: number[], b: number[], c: number[]) => {
       const baX = a[0] - b[0];
       const baY = a[1] - b[1];
@@ -58,29 +60,46 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
       return Math.round((Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI);
     };
 
-    if (activeJointKey === 'shoulder') {
-      const h = coords.hip_r;
-      const s = coords.shoulder_r;
-      const e = coords.elbow_r;
-      if (h && s && e) return calculateAngle(h, s, e);
-    } else if (activeJointKey === 'knee') {
-      const h = coords.hip_r;
-      const k = coords.knee_r;
-      const a = coords.ankle_r;
-      if (h && k && a) return calculateAngle(h, k, a);
-    } else {
-      const s = coords.shoulder_r;
-      const e = coords.elbow_r;
-      const w = coords.wrist_r;
-      if (s && e && w) return calculateAngle(s, e, w);
-    }
+    const s = coords[`shoulder_${side}`];
+    const e = coords[`elbow_${side}`];
+    const w = coords[`wrist_${side}`];
+    const h = coords[`hip_${side}`];
+    const k = coords[`knee_${side}`];
+    const a = coords[`ankle_${side}`];
+
+    if (joint === 'shoulder' && h && s && e) return calculateAngle(h, s, e);
+    if (joint === 'elbow' && s && e && w) return calculateAngle(s, e, w);
+    if (joint === 'hip' && s && h && k) return calculateAngle(s, h, k);
+    if (joint === 'knee' && h && k && a) return calculateAngle(h, k, a);
     return 0;
   };
 
-  const currentSessionData = frames.map(f => ({
-    time: (f.timestamp_millis / 1000).toFixed(1),
-    Angle: calculateJointAngleDeg(f.joint_coordinates)
-  }));
+  const currentSessionData = frames.map(f => {
+    const coords = f.joint_coordinates;
+    const time = (f.timestamp_millis / 1000).toFixed(1);
+    
+    if (activeJointKey === 'squat') {
+      const kneeL = calculateAngleForJoint(coords, 'knee', 'l');
+      const kneeR = calculateAngleForJoint(coords, 'knee', 'r');
+      const hipL = calculateAngleForJoint(coords, 'hip', 'l');
+      const hipR = calculateAngleForJoint(coords, 'hip', 'r');
+      return {
+        time,
+        'Knee Angle': Math.round((kneeL + kneeR) / 2),
+        'Hip Angle': Math.round((hipL + hipR) / 2)
+      };
+    } else {
+      const angle = activeJointKey === 'shoulder' 
+        ? calculateAngleForJoint(coords, 'shoulder')
+        : activeJointKey === 'knee'
+          ? calculateAngleForJoint(coords, 'knee')
+          : calculateAngleForJoint(coords, 'elbow');
+      return {
+        time,
+        Angle: angle
+      };
+    }
+  });
 
   // 2. Process history data for progress trend
   const trendData = [...history]
@@ -90,7 +109,7 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
       ROM: Math.round(s.range_of_motion),
       Accuracy: Math.round(s.score),
       Speed: Math.round(s.speed),
-      Symmetry: Math.round(s.symmetry * 100)
+      Symmetry: Math.round(s.symmetry > 2.0 ? s.symmetry : s.symmetry * 100)
     }));
 
 
@@ -114,19 +133,29 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff' }}
                   labelFormatter={(label) => `Time: ${label}s`}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="Angle" 
-                  stroke="#22d3ee" 
-                  strokeWidth={2.5} 
-                  dot={false}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: '#22d3ee' }} 
-                />
+                {activeJointKey === 'squat' && <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />}
+                
+                {activeJointKey === 'squat' ? (
+                  <>
+                    <Line type="monotone" dataKey="Knee Angle" stroke="#34d399" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Hip Angle" stroke="#22d3ee" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                  </>
+                ) : (
+                  <Line 
+                    type="monotone" 
+                    dataKey="Angle" 
+                    stroke="#22d3ee" 
+                    strokeWidth={2.5} 
+                    dot={false}
+                    activeDot={{ r: 6, strokeWidth: 0, fill: '#22d3ee' }} 
+                  />
+                )}
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
+
 
       {/* Historical Trends Charts */}
       {trendData.length > 1 && (
