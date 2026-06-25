@@ -3,6 +3,107 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Gold - Core Primary Palette (Figma #A27B41) */
+    --color-gold-50: #faf9f6;
+    --color-gold-100: #f3efe9;
+    --color-gold-200: #e6dce8;
+    --color-gold-300: #d6c5ad;
+    --color-gold-400: #c3ac8a;
+    --color-gold-500: #A27B41; /* Core Gold from Figma */
+    --color-gold-600: #8b6633;
+    --color-gold-700: #745227;
+    --color-gold-800: #5b3e1c;
+    --color-gold-900: #422a13;
+
+    /* Charcoal - Secondary Neutral Palette (Figma #0D0C18) */
+    --color-charcoal-50: #f8f9fa;
+    --color-charcoal-100: #f1f2f4;
+    --color-charcoal-200: #e2e4e8;
+    --color-charcoal-300: #c7cbd2;
+    --color-charcoal-400: #a1a7b3;
+    --color-charcoal-500: #7a8292;
+    --color-charcoal-600: #525252; /* Figma secondary gray */
+    --color-charcoal-700: #0D0C18; /* Core Charcoal from Figma */
+    --color-charcoal-800: #121122;
+    --color-charcoal-900: #08070f;
+
+    /* Contextual mappings derived from Figma layout colors */
+    --background: #ffffff;
+    --surface: #fafbfc; /* Auto layout bg #FAFBFC */
+    --surface-raised: #ffffff;
+    --text-primary: #0D0C18; /* Main heading text #0D0C18 */
+    --text-secondary: #525252; /* Body text label gray #525252 */
+    --text-muted: #a3a3a3; /* Subtitles #A3A3A3 */
+    --border: #e5e5e5; /* Border gray #E5E5E5 */
+    --border-hover: #d9d9d9;
+    --focus: #A27B41;
+
+    /* Feedback colors mapped to Figma styles */
+    --success: #4F995E; /* Figma positive green */
+    --success-light: #ecfdf5;
+    --success-dark: #3a7447;
+
+    --warning: #f59e0b;
+    --warning-light: #f2f0ea; /* Figma warning pill background */
+    --warning-dark: #b45309;
+
+    --error: #D15858; /* Figma error color */
+    --error-light: #f5e6e6; /* Figma error background */
+    --error-dark: #b43c3c;
+
+    --info: #3b82f6;
+    --info-light: #eff6ff;
+    --info-dark: #1e40af;
+
+    /* Radius System */
+    --radius-sm: 6px;
+    --radius-md: 8px; /* Figma buttons/inputs use 8px */
+    --radius-lg: 12px; /* Figma cards use 12px */
+    --radius-xl: 16px; /* Figma large frames use 16px */
+
+    /* Shadows */
+    --shadow-sm: 0px 1px 2px rgba(0, 0, 0, 0.05); /* Figma input shadow */
+    --shadow-md: 0px 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1); /* Figma card/popup shadow */
+    --shadow-floating: 0px 20px 25px -5px rgba(0, 0, 0, 0.06);
+    --shadow-modal: 0px 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark {
+    --background: #0d0c18; /* Dark mode maps to deep charcoal bg */
+    --surface: #121122;
+    --surface-raised: #1f1e33;
+    --text-primary: #fafbfc;
+    --text-secondary: #c7cbd2;
+    --text-muted: #7a8292;
+    --border: #1f1e33;
+    --border-hover: #2d2c47;
+    --focus: #A27B41;
+
+    --success: #4F995E;
+    --success-light: rgba(79, 153, 94, 0.1);
+    --success-dark: #66bb76;
+
+    --warning: #f59e0b;
+    --warning-light: rgba(242, 240, 234, 0.1);
+    --warning-dark: #fbbf24;
+
+    --error: #D15858;
+    --error-light: rgba(209, 88, 88, 0.1);
+    --error-dark: #f87171;
+
+    --info: #3b82f6;
+    --info-light: rgba(59, 130, 246, 0.1);
+    --info-dark: #60a5fa;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
   /* Smooth scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
@@ -12,18 +113,22 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--color-charcoal-300, #cbd5e1);
     border-radius: 9999px;
   }
   .dark ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: var(--color-charcoal-800, #334155);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--color-charcoal-400, #94a3b8);
   }
 
   body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'Geist', 'SF Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
@@ -58,6 +163,15 @@
 }
 
 @layer components {
+  /* Figma AI gradient background */
+  .bg-ai-gradient {
+    background: linear-gradient(99.66deg, rgba(201, 228, 128, 0.5) 5.57%, rgba(249, 219, 54, 0.5) 97.03%), #FFFFFF;
+  }
+  
+  .dark .bg-ai-gradient {
+    background: linear-gradient(99.66deg, rgba(201, 228, 128, 0.15) 5.57%, rgba(249, 219, 54, 0.15) 97.03%), #121122;
+  }
+
   /* Premium Glassmorphic Cards */
   .glass-card-light {
     @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-glass-light;
@@ -71,26 +185,26 @@
     @apply glass-card-light dark:glass-card-dark rounded-2xl transition-all duration-300;
   }
 
-  /* Interactive Premium Buttons */
+  /* Interactive Premium Buttons mapping to Figma specs */
   .btn-primary {
-    @apply px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-medium rounded-xl shadow-premium hover:shadow-indigo-500/20 active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 bg-[#141414] hover:bg-[#272727] dark:bg-white text-white dark:text-[#141414] font-semibold rounded-chosen-md shadow-chosen-sm active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
   }
 
   .btn-secondary {
-    @apply px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 bg-[#F5F5F5] hover:bg-[#E6E6E6] dark:bg-[#121122] dark:hover:bg-[#1f1e33] text-[#0D0C18] dark:text-white font-semibold rounded-chosen-md active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
   }
 
   .btn-accent {
-    @apply px-5 py-2.5 bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-700 hover:to-accent-600 text-white font-medium rounded-xl active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
+    @apply px-5 py-2.5 bg-[#A27B41] hover:bg-[#8b6633] text-white font-semibold rounded-chosen-md active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
   }
 
-  /* Premium inputs */
+  /* Premium inputs mapping to Figma specs */
   .input-field {
-    @apply w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-slate-800 dark:text-slate-100;
+    @apply w-full px-4 py-3 bg-[#F5F5F5] dark:bg-charcoal-800/40 border border-[#E5E5E5] dark:border-[#2d3139] rounded-chosen-md focus:outline-none focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 focus:bg-white dark:focus:bg-charcoal-800 transition-all duration-200 text-chosen-text-primary placeholder-charcoal-400 text-sm;
   }
 
   /* Dashboard Headers */
   .header-title {
-    @apply font-display font-bold text-3xl tracking-tight text-slate-900 dark:text-white;
+    @apply font-display font-bold text-3xl tracking-tight text-[#0D0C18] dark:text-white;
   }
 }

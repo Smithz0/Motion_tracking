@@ -34,8 +34,6 @@ import {
 import { 
   Users, 
   Activity, 
-  TrendingUp, 
-  Clock, 
   LogOut, 
   User, 
   FileText,
@@ -45,7 +43,6 @@ import {
   BarChart3,
   Globe,
   Plus,
-  Search,
   CheckCircle,
   FileCheck,
   Menu,
@@ -55,6 +52,11 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Input, Textarea, Select, Checkbox, Toggle } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { Card, StatisticCard, ExerciseCard, EmptyCard, AnalyticsCard } from '@/components/ui/Card';
+import { Spinner } from '@/components/ui/Status';
 
 type Section = 'dashboard' | 'patients' | 'exercises' | 'reports' | 'analytics' | 'content' | 'settings';
 
@@ -460,87 +462,87 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-brand-dark flex flex-col md:flex-row transition-colors duration-200">
+    <div className="min-h-screen bg-chosen-bg text-chosen-text-primary flex flex-col md:flex-row transition-colors duration-200">
       
       {/* Mobile Sidebar Toggle */}
-      <div className="md:hidden bg-brand-cardDark text-white px-4 py-3 flex items-center justify-between border-b border-slate-800">
+      <div className="md:hidden bg-[#0D0C18] text-white px-4 py-3 flex items-center justify-between border-b border-charcoal-800">
         <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary-500" />
-          <span className="font-display font-bold text-sm">Chosen Motion</span>
+          <Activity className="h-5 w-5 text-[#A27B41]" />
+          <span className="font-display font-bold text-sm">Chosen Life</span>
         </div>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1 hover:bg-slate-800 rounded">
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1 hover:bg-charcoal-800 rounded">
           {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Sidebar Navigation */}
-      <aside className={`w-full md:w-64 bg-brand-cardDark text-slate-300 flex flex-col border-r border-slate-800 shrink-0 ${sidebarOpen ? 'block' : 'hidden md:flex'}`}>
-        <div className="p-6 hidden md:flex items-center gap-3 border-b border-slate-800/80">
-          <div className="h-9 w-9 bg-primary-500 rounded-lg flex items-center justify-center text-white shadow-premium">
-            <Activity className="h-5 w-5" />
+      <aside className={`w-full md:w-64 bg-[#0D0C18] text-slate-350 flex flex-col border-r border-[#E5E5E5]/10 shrink-0 ${sidebarOpen ? 'block' : 'hidden md:flex'}`}>
+        <div className="p-6 hidden md:flex items-center gap-3 border-b border-charcoal-800">
+          <div className="h-9 w-9 bg-white rounded-chosen-md flex items-center justify-center shadow-chosen-sm">
+            <Activity className="h-5 w-5 text-[#A27B41]" />
           </div>
-          <div>
-            <span className="font-display font-bold text-base text-white block leading-none">Chosen Motion</span>
-            <span className="text-[10px] uppercase font-bold tracking-widest text-primary-500 block mt-1">Admin Panel</span>
+          <div className="text-left">
+            <span className="font-display font-bold text-base text-white block leading-none">Chosen Life</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#A27B41] block mt-1">Admin Panel</span>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1">
+        <nav className="flex-1 px-4 py-6 space-y-1.5">
           <button
             onClick={() => { setActiveTab('dashboard'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'dashboard' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'dashboard' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <Activity className="h-5 w-5" />
             Dashboard
           </button>
           <button
             onClick={() => { setActiveTab('patients'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'patients' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'patients' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <Users className="h-5 w-5" />
             Patients
           </button>
           <button
             onClick={() => { setActiveTab('exercises'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'exercises' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'exercises' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <Dumbbell className="h-5 w-5" />
             Exercises
           </button>
           <button
             onClick={() => { setActiveTab('reports'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'reports' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'reports' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <FileText className="h-5 w-5" />
             Motion Reports
           </button>
           <button
             onClick={() => { setActiveTab('analytics'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'analytics' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'analytics' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <BarChart3 className="h-5 w-5" />
             Progress Analytics
           </button>
           <button
             onClick={() => { setActiveTab('content'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'content' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'content' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <Globe className="h-5 w-5" />
             Website Content
           </button>
           <button
             onClick={() => { setActiveTab('settings'); setSidebarOpen(false); }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'settings' ? 'bg-primary-600 text-white shadow-premium' : 'hover:bg-slate-800/60 hover:text-white'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-chosen-md text-sm font-semibold transition-all ${activeTab === 'settings' ? 'bg-[#A27B41]/10 text-[#A27B41]' : 'hover:bg-white/5 hover:text-white text-slate-400'}`}
           >
             <SettingsIcon className="h-5 w-5" />
             Settings
           </button>
         </nav>
 
-        <div className="p-4 border-t border-slate-800/80">
+        <div className="p-4 border-t border-charcoal-800">
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-950/10 rounded-xl transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-450 hover:text-red-400 hover:bg-red-950/15 rounded-chosen-md transition-all"
           >
             <LogOut className="h-5 w-5" />
             Sign Out
@@ -552,20 +554,20 @@ const AdminDashboard: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* Top Navbar Header */}
-        <header className="bg-white dark:bg-brand-cardDark border-b border-slate-200 dark:border-slate-800/60 px-8 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white capitalize">
+        <header className="bg-chosen-raised border-b border-chosen px-8 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-display font-bold text-chosen-text-primary capitalize">
             {activeTab === 'reports' ? 'Motion Reports' : activeTab === 'content' ? 'Website Content' : activeTab}
           </h2>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col items-end">
-              <span className="text-sm font-semibold text-slate-800 dark:text-white">
+              <span className="text-sm font-semibold text-chosen-text-primary">
                 {profile?.firstName ? `${profile.firstName} ${profile.lastName}` : clinicianName || profile?.email}
               </span>
-              <span className="text-[10px] bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 px-2 py-0.5 rounded-full font-bold uppercase mt-0.5">
+              <span className="text-[10px] bg-gold-500/10 text-gold-500 px-2 py-0.5 rounded-full font-bold uppercase mt-0.5">
                 Clinician
               </span>
             </div>
-            <div className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+            <div className="h-9 w-9 rounded-full bg-chosen-surface flex items-center justify-center text-chosen-text-secondary">
               <User className="h-5 w-5" />
             </div>
           </div>
@@ -582,109 +584,103 @@ const AdminDashboard: React.FC = () => {
               {/* Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <div className="glass-card p-6 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Patients</span>
-                    <h3 className="font-display font-bold text-3xl text-slate-900 dark:text-white">
-                      {loading ? '...' : patients.filter(p => !p.is_archived).length}
-                    </h3>
-                    <span className="text-[10px] text-green-500 font-semibold flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" /> Active Clinic Roster
-                    </span>
-                  </div>
-                  <div className="p-4 bg-primary-500/10 rounded-2xl text-primary-500">
-                    <Users className="h-6 w-6" />
-                  </div>
-                </div>
+                <StatisticCard
+                  label="Total Patients"
+                  value={loading ? '...' : patients.filter(p => !p.is_archived).length}
+                  trend={{
+                    value: 'Active Clinic Roster',
+                    direction: 'up',
+                  }}
+                  icon={<Users className="h-6 w-6" />}
+                  iconBg="bg-gold-500/10 text-gold-500"
+                />
 
-                <div className="glass-card p-6 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Patients</span>
-                    <h3 className="font-display font-bold text-3xl text-slate-900 dark:text-white">
-                      {loading ? '...' : patients.filter(p => p.diagnosis && !p.is_archived).length}
-                    </h3>
-                    <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-                      Underactive recovery tracking
-                    </span>
-                  </div>
-                  <div className="p-4 bg-accent-500/10 rounded-2xl text-accent-500">
-                    <CheckCircle className="h-6 w-6" />
-                  </div>
-                </div>
+                <StatisticCard
+                  label="Active Patients"
+                  value={loading ? '...' : patients.filter(p => p.diagnosis && !p.is_archived).length}
+                  trend={{
+                    value: 'Underactive recovery tracking',
+                    direction: 'neutral',
+                  }}
+                  icon={<CheckCircle className="h-6 w-6" />}
+                  iconBg="bg-green-500/10 text-green-500"
+                />
 
-                <div className="glass-card p-6 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Completed Sessions</span>
-                    <h3 className="font-display font-bold text-3xl text-slate-900 dark:text-white">{loading ? '...' : stats?.total_sessions || 0}</h3>
-                    <span className="text-[10px] text-green-500 font-semibold flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" /> +24% weekly activity
-                    </span>
-                  </div>
-                  <div className="p-4 bg-yellow-500/10 rounded-2xl text-yellow-500">
-                    <FileCheck className="h-6 w-6" />
-                  </div>
-                </div>
+                <StatisticCard
+                  label="Completed Sessions"
+                  value={loading ? '...' : stats?.total_sessions || 0}
+                  trend={{
+                    value: '+24% weekly activity',
+                    direction: 'up',
+                  }}
+                  icon={<FileCheck className="h-6 w-6" />}
+                  iconBg="bg-yellow-500/10 text-yellow-500"
+                />
 
-                <div className="glass-card p-6 flex items-center justify-between">
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Average Form Score</span>
-                    <h3 className="font-display font-bold text-3xl text-slate-900 dark:text-white">
-                      {loading ? '...' : `${stats?.average_session_score || 91.5}%`}
-                    </h3>
-                    <span className="text-[10px] text-slate-500 font-semibold">
-                      Joint alignment accuracy
-                    </span>
-                  </div>
-                  <div className="p-4 bg-purple-500/10 rounded-2xl text-purple-500">
-                    <Activity className="h-6 w-6" />
-                  </div>
-                </div>
+                <StatisticCard
+                  label="Average Form Score"
+                  value={loading ? '...' : `${stats?.average_session_score || 91.5}%`}
+                  trend={{
+                    value: 'Joint alignment accuracy',
+                    direction: 'neutral',
+                  }}
+                  icon={<Activity className="h-6 w-6" />}
+                  iconBg="bg-purple-500/10 text-purple-500"
+                />
               </div>
 
               {/* Roster & Feed Split */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {/* Roster Quicklist */}
-                <div className="lg:col-span-2 glass-card p-6 space-y-6">
+                <Card className="lg:col-span-2 space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Active Roster</h3>
-                    <button onClick={() => setActiveTab('patients')} className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-all">
+                    <h3 className="font-display font-bold text-lg text-chosen-text-primary">Active Roster</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveTab('patients')}
+                    >
                       Manage Roster
-                    </button>
+                    </Button>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-left text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <tr className="border-b border-chosen text-xs font-semibold uppercase tracking-wider text-chosen-text-muted">
                           <th className="pb-3 pl-2">Patient</th>
                           <th className="pb-3">Diagnosis</th>
                           <th className="pb-3">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                      <tbody className="divide-y divide-chosen">
                         {loading ? (
-                          <tr><td colSpan={3} className="py-8 text-center text-slate-400">Loading active patients...</td></tr>
+                          <tr><td colSpan={3} className="py-8 text-center text-chosen-text-muted">Loading active patients...</td></tr>
                         ) : patients.filter(p => !p.is_archived).length === 0 ? (
-                          <tr><td colSpan={3} className="py-8 text-center text-slate-400">No active patients registered.</td></tr>
+                          <tr><td colSpan={3} className="py-8 text-center text-chosen-text-muted">No active patients registered.</td></tr>
                         ) : (
                           patients.filter(p => !p.is_archived).slice(0, 3).map(p => (
-                            <tr key={patientApiId(p)} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all">
+                            <tr key={patientApiId(p)} className="hover:bg-chosen-surface/50 transition-all">
                               <td className="py-4 pl-2 flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xs uppercase">
+                                <div className="h-8 w-8 rounded-full bg-gold-500/10 text-gold-500 flex items-center justify-center font-bold text-xs uppercase">
                                   {p.full_name?.[0] || 'P'}
                                 </div>
                                 <div>
-                                  <span className="font-medium text-slate-900 dark:text-white block">{p.full_name}</span>
-                                  <span className="text-[10px] text-slate-400 block">{p.email || 'no-email'}</span>
+                                  <span className="font-medium text-chosen-text-primary block">{p.full_name}</span>
+                                  <span className="text-[10px] text-chosen-text-muted block">{p.email || 'no-email'}</span>
                                 </div>
                               </td>
-                              <td className="py-4 text-slate-600 dark:text-slate-300">
+                              <td className="py-4 text-chosen-text-secondary">
                                 {p.diagnosis || 'Rehabilitation evaluation needed'}
                               </td>
                               <td className="py-4">
-                                <button onClick={() => { setActiveTab('patients'); loadPatientProfileDetail(patientApiId(p)); }} className="text-xs font-semibold text-primary-500 hover:underline">
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={() => { setActiveTab('patients'); loadPatientProfileDetail(patientApiId(p)); }}
+                                >
                                   Profile
-                                </button>
+                                </Button>
                               </td>
                             </tr>
                           ))
@@ -692,38 +688,39 @@ const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
 
                 {/* Activity Feed */}
-                <div className="glass-card p-6 space-y-6">
-                  <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Recent Activities</h3>
+                <Card className="space-y-6">
+                  <h3 className="font-display font-bold text-lg text-chosen-text-primary">Recent Activities</h3>
                   <div className="space-y-4">
                     {loading ? (
-                      <p className="text-sm text-slate-400">Loading activities...</p>
+                      <p className="text-sm text-chosen-text-muted">Loading activities...</p>
                     ) : stats?.recent_activity.map((act) => (
-                      <div key={act.id} className="flex justify-between items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all">
+                      <div key={act.id} className="flex justify-between items-center p-3 rounded-chosen-md hover:bg-chosen-surface transition-all">
                         <div className="flex gap-3.5 items-center min-w-0">
-                          <div className="h-9 w-9 bg-accent-500/10 rounded-xl text-accent-500 flex items-center justify-center shrink-0">
+                          <div className="h-9 w-9 bg-gold-500/10 rounded-chosen-md text-gold-500 flex items-center justify-center shrink-0">
                             <FileText className="h-5 w-5" />
                           </div>
                           <div className="min-w-0 text-left">
-                            <h4 className="font-medium text-sm text-slate-900 dark:text-white truncate">{act.title}</h4>
-                            <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                            <h4 className="font-medium text-sm text-chosen-text-primary truncate">{act.title}</h4>
+                            <p className="text-[10px] text-chosen-text-muted mt-0.5 font-mono">
                               Accuracy: {sessionFormScore(act)}% | {new Date(sessionTimestamp(act)).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="xs"
                           onClick={() => navigate(`/admin/session/${act.id}`)}
-                          className="p-1.5 bg-slate-100 hover:bg-primary-100 dark:bg-slate-800 dark:hover:bg-primary-950/40 text-slate-500 hover:text-primary-500 dark:text-slate-400 dark:hover:text-primary-400 rounded-lg transition-all shrink-0 font-bold"
                           title="Replay Session"
                         >
-                          <PlayCircle className="h-4.5 w-4.5" />
-                        </button>
+                          <PlayCircle className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           )}
@@ -735,91 +732,79 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-8 animate-slide-up">
               {/* Header search / action bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex flex-1 items-center gap-3 max-w-md">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Search patient name, email, plan..."
-                      className="input-field pl-10 py-2.5 text-sm"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 select-none shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={includeArchived}
-                      onChange={(e) => setIncludeArchived(e.target.checked)}
-                      className="rounded text-primary-600 focus:ring-primary-500 h-4 w-4"
-                    />
-                    Include Archived
-                  </label>
+                <div className="flex flex-1 items-center gap-4 max-w-md">
+                  <Input
+                    type="search"
+                    placeholder="Search patient name, email, plan..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Checkbox
+                    label="Include Archived"
+                    checked={includeArchived}
+                    onChange={(e) => setIncludeArchived(e.target.checked)}
+                  />
                 </div>
-                <button
+                <Button
                   onClick={() => setCreateModalOpen(true)}
-                  className="btn-primary py-2.5 text-sm flex items-center gap-2 shrink-0"
+                  leftIcon={<Plus className="h-4 w-4" />}
                 >
-                  <Plus className="h-4 w-4" /> Create Patient
-                </button>
+                  Create Patient
+                </Button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Patient roster list */}
-                <div className="lg:col-span-2 glass-card p-6 space-y-4">
-                  <h3 className="font-display font-semibold text-base text-slate-900 dark:text-white"> Roster Database</h3>
+                <Card className="lg:col-span-2 space-y-4">
+                  <h3 className="font-display font-semibold text-base text-chosen-text-primary">Roster Database</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        <tr className="border-b border-chosen text-xs font-semibold uppercase tracking-wider text-chosen-text-muted">
                           <th className="pb-3 pl-2">Patient</th>
                           <th className="pb-3">Diagnosis</th>
                           <th className="pb-3">Status</th>
                           <th className="pb-3 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                      <tbody className="divide-y divide-chosen">
                         {loading ? (
-                          <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading active patients...</td></tr>
+                          <tr><td colSpan={4} className="py-8 text-center text-chosen-text-muted">Loading active patients...</td></tr>
                         ) : patients.length === 0 ? (
-                          <tr><td colSpan={4} className="py-8 text-center text-slate-400">No matching patients found.</td></tr>
+                          <tr><td colSpan={4} className="py-8 text-center text-chosen-text-muted">No matching patients found.</td></tr>
                         ) : (
                           patients.map(p => (
                             <tr 
                               key={patientApiId(p)} 
-                              className={`hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all cursor-pointer ${selectedPatientId === patientApiId(p) ? 'bg-primary-500/5 dark:bg-primary-500/10' : ''}`}
+                              className={`hover:bg-chosen-surface/50 transition-all cursor-pointer ${selectedPatientId === patientApiId(p) ? 'bg-gold-500/5' : ''}`}
                               onClick={() => loadPatientProfileDetail(patientApiId(p))}
                             >
                               <td className="py-4 pl-2">
                                 <div className="flex items-center gap-3">
-                                  <div className="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xs uppercase">
+                                  <div className="h-8 w-8 rounded-full bg-gold-500/10 text-gold-500 flex items-center justify-center font-bold text-xs uppercase">
                                     {p.full_name?.[0] || 'P'}
                                   </div>
                                   <div>
-                                    <span className="font-semibold text-slate-900 dark:text-white block">
+                                    <span className="font-semibold text-chosen-text-primary block">
                                       {p.full_name}
                                     </span>
-                                    <span className="text-[10px] text-slate-400 block">{p.email || 'no-email'}</span>
+                                    <span className="text-[10px] text-chosen-text-muted block">{p.email || 'no-email'}</span>
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-4 text-slate-600 dark:text-slate-300">
+                              <td className="py-4 text-chosen-text-secondary">
                                 {p.diagnosis || 'Evaluation pending'}
                               </td>
                               <td className="py-4">
-                                {p.is_archived ? (
-                                  <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-red-100 dark:bg-red-950/30 text-red-600 dark:text-red-400">
-                                    Archived
-                                  </span>
-                                ) : (
-                                  <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-green-100 dark:bg-green-950/30 text-green-600 dark:text-green-400">
-                                    Active
-                                  </span>
-                                )}
+                                <Badge variant={p.is_archived ? 'error' : 'success'}>
+                                  {p.is_archived ? 'Archived' : 'Active'}
+                                </Badge>
                               </td>
                               <td className="py-4 text-right pr-2" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-end gap-2">
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={() => {
                                       setSelectedPatientId(patientApiId(p));
                                       setEditFullName(p.full_name || '');
@@ -828,19 +813,19 @@ const AdminDashboard: React.FC = () => {
                                       setEditDiagnosis(p.diagnosis || '');
                                       setEditModalOpen(true);
                                     }}
-                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 hover:text-primary-500"
                                     title="Edit Patient"
                                   >
                                     <Edit2 className="h-4 w-4" />
-                                  </button>
+                                  </Button>
                                   {!p.is_archived && (
-                                    <button
+                                    <Button
+                                      variant="danger"
+                                      size="xs"
                                       onClick={() => handleArchivePatient(patientApiId(p))}
-                                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded text-slate-500 hover:text-red-500"
                                       title="Archive Patient"
                                     >
                                       <Archive className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                   )}
                                 </div>
                               </td>
@@ -850,61 +835,61 @@ const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </Card>
 
                 {/* Patient Profile Detailed View Side Panel */}
-                <div className="glass-card p-6 space-y-6">
-                  <h3 className="font-display font-semibold text-base text-slate-900 dark:text-white">Patient File View</h3>
+                <Card className="space-y-6">
+                  <h3 className="font-display font-semibold text-base text-chosen-text-primary">Patient File View</h3>
                   
                   {loadingDetail ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
-                      <Clock className="h-8 w-8 animate-spin" />
+                    <div className="py-12 flex flex-col items-center justify-center text-chosen-text-muted gap-2">
+                      <Spinner size="md" />
                       <span className="text-xs">Loading patient file...</span>
                     </div>
                   ) : !patientDetail ? (
-                    <div className="py-16 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400">
-                      <ClipboardList className="h-10 w-10 mx-auto text-slate-300 mb-3" />
-                      <p className="text-sm font-medium">No patient selected</p>
-                      <p className="text-2xs mt-1">Select a patient row in the database roster to review details.</p>
-                    </div>
+                    <EmptyCard
+                      title="No patient selected"
+                      description="Select a patient row in the database roster to review details."
+                      icon={<ClipboardList className="h-10 w-10 mx-auto text-chosen-text-muted mb-4" />}
+                    />
                   ) : (
-                    <div className="space-y-6 animate-fade-in text-sm">
+                    <div className="space-y-6 animate-fade-in text-sm text-left">
                       {/* Personal Info Header */}
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-primary-500 text-white rounded-full flex items-center justify-center font-bold">
+                        <div className="h-10 w-10 bg-gold-500 text-white rounded-full flex items-center justify-center font-bold">
                           {patientDetail.full_name?.[0]}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900 dark:text-white">{patientDetail.full_name}</h4>
-                          <span className="text-2xs text-slate-400 block">{patientDetail.email}</span>
+                          <h4 className="font-semibold text-chosen-text-primary">{patientDetail.full_name}</h4>
+                          <span className="text-2xs text-chosen-text-muted block">{patientDetail.email}</span>
                         </div>
                       </div>
 
-                      <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                      <div className="space-y-3 p-4 bg-chosen-surface rounded-chosen-lg border border-chosen">
                         <div>
-                          <span className="text-2xs text-slate-400 uppercase font-bold block">Contact Phone</span>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{patientDetail.phone || 'N/A'}</span>
+                          <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Contact Phone</span>
+                          <span className="font-medium text-chosen-text-secondary">{patientDetail.phone || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-2xs text-slate-400 uppercase font-bold block">Date of Birth</span>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{patientDetail.date_of_birth || 'N/A'}</span>
+                          <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Date of Birth</span>
+                          <span className="font-medium text-chosen-text-secondary">{patientDetail.date_of_birth || 'N/A'}</span>
                         </div>
                         <div>
-                          <span className="text-2xs text-slate-400 uppercase font-bold block">Clinical Plan</span>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{patientDetail.diagnosis || 'Rehab plan unassigned'}</span>
+                          <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Clinical Plan</span>
+                          <span className="font-medium text-chosen-text-secondary">{patientDetail.diagnosis || 'Rehab plan unassigned'}</span>
                         </div>
                       </div>
 
                       {/* Consent status */}
                       <div className="space-y-2">
-                        <span className="text-2xs text-slate-400 uppercase font-bold block">Consent & Agreements</span>
+                        <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Consent & Agreements</span>
                         {patientDetail.consents?.length === 0 ? (
-                          <span className="text-xs text-slate-500 block">No consent recorded.</span>
+                          <span className="text-xs text-chosen-text-muted block">No consent recorded.</span>
                         ) : (
                           patientDetail.consents.map((c) => (
-                            <div key={c.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/20 p-2.5 rounded-xl border border-slate-100/50 dark:border-slate-800/20 text-xs">
-                              <span className="font-medium text-slate-700 dark:text-slate-300">{c.consent_level}</span>
-                              <span className="text-2xs text-slate-400">{new Date(c.granted_at).toLocaleDateString()}</span>
+                            <div key={c.id} className="flex justify-between items-center bg-chosen-surface p-2.5 rounded-chosen-md border border-chosen text-xs">
+                              <span className="font-medium text-chosen-text-secondary">{c.consent_level}</span>
+                              <span className="text-2xs text-chosen-text-muted">{new Date(c.granted_at).toLocaleDateString()}</span>
                             </div>
                           ))
                         )}
@@ -913,47 +898,52 @@ const AdminDashboard: React.FC = () => {
                       {/* Assigned exercises */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-2xs text-slate-400 uppercase font-bold block">Assigned Exercises</span>
+                          <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Assigned Exercises</span>
                           {patientDetail && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="xs"
                               onClick={() => setAssignModalOpen(true)}
                               disabled={availableExercisesToAssign.length === 0}
-                              className="text-[10px] font-bold text-primary-500 hover:text-primary-600 disabled:text-slate-300 disabled:cursor-not-allowed flex items-center gap-1"
+                              leftIcon={<Plus className="h-3 w-3" />}
+                              className="text-[10px] font-bold text-gold-500 hover:text-gold-600 p-0"
                             >
-                              <Plus className="h-3 w-3" /> Assign
-                            </button>
+                              Assign
+                            </Button>
                           )}
                         </div>
                         {patientDetail.assignments?.length === 0 ? (
-                          <span className="text-xs text-slate-500 block">No exercises assigned yet.</span>
+                          <span className="text-xs text-chosen-text-muted block">No exercises assigned yet.</span>
                         ) : (
                           patientDetail.assignments.map((a) => {
                             const progress = getAssignmentProgress(a.exercise_id);
                             return (
-                              <div key={a.id} className="bg-slate-50 dark:bg-slate-900/20 p-2.5 rounded-xl border border-slate-100/50 dark:border-slate-800/20 text-xs space-y-1.5">
+                              <div key={a.id} className="bg-chosen-surface p-2.5 rounded-chosen-md border border-chosen text-xs space-y-1.5">
                                 <div className="flex justify-between items-center">
-                                  <span className="font-medium text-slate-700 dark:text-slate-300">{a.exercise?.name || 'Workout'}</span>
+                                  <span className="font-medium text-chosen-text-primary">{a.exercise?.name || 'Workout'}</span>
                                   <div className="flex items-center gap-1.5">
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${progress.count > 0 ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}>
+                                    <Badge variant={progress.count > 0 ? 'success' : 'warning'}>
                                       {progress.count > 0 ? `${progress.count} session${progress.count !== 1 ? 's' : ''}` : 'Not started'}
-                                    </span>
-                                    <button
+                                    </Badge>
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      className="text-error hover:bg-error-light p-1"
                                       onClick={() => handleRemoveAssignment(a.id)}
                                       disabled={removingAssignmentId === a.id}
-                                      className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded transition-all disabled:opacity-50"
                                       title="Remove assignment"
                                     >
                                       <Trash2 className="h-3 w-3" />
-                                    </button>
+                                    </Button>
                                   </div>
                                 </div>
                                 {progress.latestScore !== null && (
-                                  <span className="text-2xs text-slate-400 block">
-                                    Latest form score: <span className="font-bold text-accent-500">{progress.latestScore}%</span>
+                                  <span className="text-2xs text-chosen-text-muted block">
+                                    Latest form score: <span className="font-bold text-gold-500">{progress.latestScore}%</span>
                                   </span>
                                 )}
                                 {a.due_date && (
-                                  <span className="text-2xs text-slate-400 block">
+                                  <span className="text-2xs text-chosen-text-muted block">
                                     Due: {new Date(a.due_date).toLocaleDateString()}
                                   </span>
                                 )}
@@ -965,26 +955,26 @@ const AdminDashboard: React.FC = () => {
 
                       {/* Sessions progress history */}
                       <div className="space-y-2">
-                        <span className="text-2xs text-slate-400 uppercase font-bold block">Progress History</span>
+                        <span className="text-2xs text-chosen-text-muted uppercase font-bold block">Progress History</span>
                         {patientDetail.sessions?.length === 0 ? (
-                          <span className="text-xs text-slate-500 block">No sessions recorded yet.</span>
+                          <span className="text-xs text-chosen-text-muted block">No sessions recorded yet.</span>
                         ) : (
                           <div className="space-y-2">
                             {patientDetail.sessions.map((s) => (
-                              <div key={s.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/20 p-2.5 rounded-xl border border-slate-100/50 dark:border-slate-800/20 text-xs hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                              <div key={s.id} className="flex justify-between items-center bg-chosen-surface p-2.5 rounded-chosen-md border border-chosen text-xs hover:border-gold-500 transition-all">
                                 <div className="text-left">
-                                  <span className="font-medium text-slate-700 dark:text-slate-300 block truncate max-w-[140px]">{s.title}</span>
-                                  <span className="text-2xs text-slate-400 font-mono block mt-0.5">{new Date(sessionTimestamp(s)).toLocaleDateString()}</span>
+                                  <span className="font-medium text-chosen-text-primary block truncate max-w-[140px]">{s.title}</span>
+                                  <span className="text-2xs text-chosen-text-muted font-mono block mt-0.5">{new Date(sessionTimestamp(s)).toLocaleDateString()}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-bold text-accent-500">{sessionFormScore(s)}% Form</span>
-                                  <button
+                                  <span className="font-bold text-gold-500">{sessionFormScore(s)}% Form</span>
+                                  <Button
+                                    variant="secondary"
+                                    size="xs"
                                     onClick={() => navigate(`/admin/session/${s.id}`)}
-                                    className="p-1.5 bg-slate-100 hover:bg-primary-100 dark:bg-slate-800 dark:hover:bg-primary-950/40 text-slate-500 hover:text-primary-500 dark:text-slate-400 dark:hover:text-primary-400 rounded-lg transition-all font-bold"
                                     title="Replay Session"
-                                  >
-                                    <PlayCircle className="h-3.5 w-3.5" />
-                                  </button>
+                                    leftIcon={<PlayCircle className="h-3.5 w-3.5" />}
+                                  />
                                 </div>
                               </div>
                             ))}
@@ -993,93 +983,77 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
                   )}
-                </div>
+                </Card>
               </div>
 
               {/* Modal: Create Patient */}
               {createModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                  <div className="w-full max-w-md glass-card p-8 relative space-y-6">
-                    <button onClick={() => setCreateModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600">
+                  <div className="w-full max-w-md bg-chosen-raised border border-chosen rounded-chosen-lg p-8 relative space-y-6 shadow-chosen-modal">
+                    <Button variant="ghost" size="xs" onClick={() => setCreateModalOpen(false)} className="absolute top-5 right-5 text-chosen-text-muted hover:text-chosen-text-primary p-1">
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Create Patient</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Register a new patient profile inside the clinical system.</p>
+                      <h3 className="font-display font-bold text-lg text-chosen-text-primary">Create Patient</h3>
+                      <p className="text-xs text-chosen-text-muted mt-1">Register a new patient profile inside the clinical system.</p>
                     </div>
                     <form onSubmit={handleCreatePatient} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Email Address</label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="patient@chosenmotion.com"
-                          className="input-field text-sm"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Full Name</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Sarah Connor"
-                          className="input-field text-sm"
-                          value={newFullName}
-                          onChange={(e) => setNewFullName(e.target.value)}
-                        />
-                      </div>
+                      <Input
+                        label="Email Address"
+                        type="email"
+                        required
+                        placeholder="patient@chosenmotion.com"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                      />
+                      <Input
+                        label="Full Name"
+                        type="text"
+                        required
+                        placeholder="Sarah Connor"
+                        value={newFullName}
+                        onChange={(e) => setNewFullName(e.target.value)}
+                      />
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Date of Birth</label>
-                          <input
-                            type="date"
-                            className="input-field text-sm"
-                            value={newDob}
-                            onChange={(e) => setNewDob(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Phone Number</label>
-                          <input
-                            type="text"
-                            placeholder="+1 555-0199"
-                            className="input-field text-sm"
-                            value={newPhone}
-                            onChange={(e) => setNewPhone(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Diagnosis / Target Treatment Plan</label>
-                        <input
+                        <Input
+                          label="Date of Birth"
+                          type="date"
+                          value={newDob}
+                          onChange={(e) => setNewDob(e.target.value)}
+                        />
+                        <Input
+                          label="Phone Number"
                           type="text"
-                          placeholder="e.g. Shoulder Abduction Routine"
-                          className="input-field text-sm"
-                          value={newDiagnosis}
-                          onChange={(e) => setNewDiagnosis(e.target.value)}
+                          placeholder="+1 555-0199"
+                          value={newPhone}
+                          onChange={(e) => setNewPhone(e.target.value)}
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Initial Consent Level</label>
-                        <select
-                          className="input-field text-sm"
-                          value={newConsent}
-                          onChange={(e) => setNewConsent(e.target.value)}
-                        >
-                          <option value="Full Consent">Full Consent (HIPAA Sharing)</option>
-                          <option value="Research Only">Research Only</option>
-                          <option value="None">No External Sharing</option>
-                        </select>
-                      </div>
-                      <button
+                      <Input
+                        label="Diagnosis / Target Treatment Plan"
+                        type="text"
+                        placeholder="e.g. Shoulder Abduction Routine"
+                        value={newDiagnosis}
+                        onChange={(e) => setNewDiagnosis(e.target.value)}
+                      />
+                      <Select
+                        label="Initial Consent Level"
+                        value={newConsent}
+                        onChange={(e) => setNewConsent(e.target.value)}
+                        options={[
+                          { value: 'Full Consent', label: 'Full Consent (HIPAA Sharing)' },
+                          { value: 'Research Only', label: 'Research Only' },
+                          { value: 'None', label: 'No External Sharing' }
+                        ]}
+                      />
+                      <Button
                         type="submit"
                         disabled={creating}
-                        className="w-full btn-primary py-3 mt-2"
+                        isLoading={creating}
+                        className="w-full mt-2"
                       >
-                        {creating ? 'Creating...' : 'Create Patient Profile'}
-                      </button>
+                        Create Patient Profile
+                      </Button>
                     </form>
                   </div>
                 </div>
@@ -1088,60 +1062,50 @@ const AdminDashboard: React.FC = () => {
               {/* Modal: Edit Patient */}
               {editModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                  <div className="w-full max-w-md glass-card p-8 relative space-y-6">
-                    <button onClick={() => setEditModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600">
+                  <div className="w-full max-w-md bg-chosen-raised border border-chosen rounded-chosen-lg p-8 relative space-y-6 shadow-chosen-modal">
+                    <Button variant="ghost" size="xs" onClick={() => setEditModalOpen(false)} className="absolute top-5 right-5 text-chosen-text-muted hover:text-chosen-text-primary p-1">
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Edit Patient Profile</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Update patient demographics and treatment plan assignments.</p>
+                      <h3 className="font-display font-bold text-lg text-chosen-text-primary">Edit Patient Profile</h3>
+                      <p className="text-xs text-chosen-text-muted mt-1">Update patient demographics and treatment plan assignments.</p>
                     </div>
                     <form onSubmit={handleEditPatient} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Full Name</label>
-                        <input
-                          type="text"
-                          required
-                          className="input-field text-sm"
-                          value={editFullName}
-                          onChange={(e) => setEditFullName(e.target.value)}
-                        />
-                      </div>
+                      <Input
+                        label="Full Name"
+                        type="text"
+                        required
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
+                      />
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Date of Birth</label>
-                          <input
-                            type="date"
-                            className="input-field text-sm"
-                            value={editDob}
-                            onChange={(e) => setEditDob(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Phone Number</label>
-                          <input
-                            type="text"
-                            className="input-field text-sm"
-                            value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Diagnosis / Treatment Assignment</label>
-                        <textarea
-                          className="input-field text-sm min-h-[80px]"
-                          value={editDiagnosis}
-                          onChange={(e) => setEditDiagnosis(e.target.value)}
+                        <Input
+                          label="Date of Birth"
+                          type="date"
+                          value={editDob}
+                          onChange={(e) => setEditDob(e.target.value)}
+                        />
+                        <Input
+                          label="Phone Number"
+                          type="text"
+                          value={editPhone}
+                          onChange={(e) => setEditPhone(e.target.value)}
                         />
                       </div>
-                      <button
+                      <Textarea
+                        label="Diagnosis / Treatment Assignment"
+                        value={editDiagnosis}
+                        onChange={(e) => setEditDiagnosis(e.target.value)}
+                        className="min-h-[80px]"
+                      />
+                      <Button
                         type="submit"
                         disabled={updating}
-                        className="w-full btn-primary py-3 mt-2"
+                        isLoading={updating}
+                        className="w-full mt-2"
                       >
-                        {updating ? 'Saving...' : 'Save Changes'}
-                      </button>
+                        Save Changes
+                      </Button>
                     </form>
                   </div>
                 </div>
@@ -1150,49 +1114,44 @@ const AdminDashboard: React.FC = () => {
               {/* Modal: Assign Exercise */}
               {assignModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                  <div className="w-full max-w-md glass-card p-8 relative space-y-6">
-                    <button onClick={() => setAssignModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600">
+                  <div className="w-full max-w-md bg-chosen-raised border border-chosen rounded-chosen-lg p-8 relative space-y-6 shadow-chosen-modal">
+                    <Button variant="ghost" size="xs" onClick={() => setAssignModalOpen(false)} className="absolute top-5 right-5 text-chosen-text-muted hover:text-chosen-text-primary p-1">
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Assign Exercise</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      <h3 className="font-display font-bold text-lg text-chosen-text-primary">Assign Exercise</h3>
+                      <p className="text-xs text-chosen-text-muted mt-1">
                         Select an exercise from the catalog to assign to {patientDetail?.full_name}.
                       </p>
                     </div>
                     <form onSubmit={handleAssignExercise} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Exercise</label>
-                        <select
-                          required
-                          className="input-field text-sm"
-                          value={selectedExerciseToAssign}
-                          onChange={(e) => setSelectedExerciseToAssign(e.target.value ? Number(e.target.value) : '')}
-                        >
-                          <option value="">Select an exercise...</option>
-                          {availableExercisesToAssign.map((ex) => (
-                            <option key={ex.id} value={ex.id}>
-                              {ex.name} (ROM: {ex.target_rom || 120}°)
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Due Date (optional)</label>
-                        <input
-                          type="date"
-                          className="input-field text-sm"
-                          value={assignDueDate}
-                          onChange={(e) => setAssignDueDate(e.target.value)}
-                        />
-                      </div>
-                      <button
+                      <Select
+                        label="Exercise"
+                        required
+                        value={selectedExerciseToAssign}
+                        onChange={(e) => setSelectedExerciseToAssign(e.target.value ? Number(e.target.value) : '')}
+                        options={[
+                          { value: '', label: 'Select an exercise...' },
+                          ...availableExercisesToAssign.map((ex) => ({
+                            value: ex.id,
+                            label: `${ex.name} (ROM: ${ex.target_rom || 120}°)`
+                          }))
+                        ]}
+                      />
+                      <Input
+                        label="Due Date (optional)"
+                        type="date"
+                        value={assignDueDate}
+                        onChange={(e) => setAssignDueDate(e.target.value)}
+                      />
+                      <Button
                         type="submit"
                         disabled={assigning || !selectedExerciseToAssign}
-                        className="w-full btn-primary py-3 mt-2"
+                        isLoading={assigning}
+                        className="w-full mt-2"
                       >
-                        {assigning ? 'Assigning...' : 'Assign Exercise'}
-                      </button>
+                        Assign Exercise
+                      </Button>
                     </form>
                   </div>
                 </div>
@@ -1206,54 +1165,37 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'exercises' && (
             <div className="space-y-6 animate-slide-up">
               <div className="flex items-center justify-between">
-                <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Active Exercises Catalog</h3>
-                <button
+                <h3 className="font-display font-bold text-lg text-chosen-text-primary">Active Exercises Catalog</h3>
+                <Button
                   onClick={() => setCreateExModalOpen(true)}
-                  className="btn-primary py-2.5 text-sm flex items-center gap-2"
+                  leftIcon={<Plus className="h-4 w-4" />}
                 >
-                  <Plus className="h-4 w-4" /> Create Exercise
-                </button>
+                  Create Exercise
+                </Button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {exercisesList.map(ex => (
-                  <div key={ex.id} className="glass-card flex flex-col overflow-hidden hover:-translate-y-1 transition-all duration-200">
-                    <img 
-                      src={ex.thumbnail_url || 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=150'} 
-                      alt={ex.name} 
-                      className="h-40 w-full object-cover border-b border-slate-200 dark:border-slate-800"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=150';
-                      }}
-                    />
-                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-display font-bold text-base text-slate-900 dark:text-white leading-tight">{ex.name}</h4>
-                          <span className="text-2xs font-semibold px-2 py-0.5 bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 rounded-full shrink-0">
-                            ROM: {ex.target_rom || 120}°
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{ex.description}</p>
-                        
-                        {ex.instructions && (
-                          <div className="pt-2 text-xs">
-                            <span className="font-bold text-slate-400 block mb-1">Instructions:</span>
-                            <p className="text-slate-600 dark:text-slate-300 italic line-clamp-3">"{ex.instructions}"</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                  <ExerciseCard
+                    key={ex.id}
+                    name={ex.name}
+                    thumbnailUrl={ex.thumbnail_url || undefined}
+                    targetRom={ex.target_rom || undefined}
+                    description={ex.description || undefined}
+                    instructions={ex.instructions || undefined}
+                    actionButton={
+                      <div className="flex items-center justify-between pt-2 border-t border-chosen mt-2">
                         <div className="flex flex-wrap gap-1">
                           {exerciseJointTags(ex).map((j) => (
-                            <span key={j} className="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded">
+                            <span key={j} className="text-[9px] font-bold bg-chosen-surface text-chosen-text-secondary px-2 py-0.5 rounded">
                               {j}
                             </span>
                           ))}
                         </div>
                         <div className="flex items-center gap-2">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="xs"
                             onClick={() => {
                               setSelectedExerciseId(ex.id);
                               setEditExName(ex.name);
@@ -1263,94 +1205,81 @@ const AdminDashboard: React.FC = () => {
                               setEditExThumb(ex.thumbnail_url || '');
                               setEditExModalOpen(true);
                             }}
-                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 hover:text-primary-500"
                             title="Edit Exercise"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="xs"
                             onClick={() => handleDeleteExercise(ex.id)}
-                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/20 rounded text-slate-500 hover:text-red-500"
                             title="Delete Exercise"
                           >
                             <Archive className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    }
+                  />
                 ))}
               </div>
 
               {/* Modal: Create Exercise */}
               {createExModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                  <div className="w-full max-w-md glass-card p-8 relative space-y-6">
-                    <button onClick={() => setCreateExModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600">
+                  <div className="w-full max-w-md bg-chosen-raised border border-chosen rounded-chosen-lg p-8 relative space-y-6 shadow-chosen-modal">
+                    <Button variant="ghost" size="xs" onClick={() => setCreateExModalOpen(false)} className="absolute top-5 right-5 text-chosen-text-muted hover:text-chosen-text-primary p-1">
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Create Catalog Exercise</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Register a new physical exercise template in the system.</p>
+                      <h3 className="font-display font-bold text-lg text-chosen-text-primary">Create Catalog Exercise</h3>
+                      <p className="text-xs text-chosen-text-muted mt-1">Register a new physical exercise template in the system.</p>
                     </div>
                     <form onSubmit={handleCreateExercise} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Exercise Name</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Elbow Flexion Routine"
-                          className="input-field text-sm"
-                          value={newExName}
-                          onChange={(e) => setNewExName(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Description</label>
-                        <textarea
-                          placeholder="Short summary of the exercise..."
-                          className="input-field text-sm min-h-[60px]"
-                          value={newExDesc}
-                          onChange={(e) => setNewExDesc(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Instructions</label>
-                        <textarea
-                          placeholder="Instructions detailing flexion extension guides..."
-                          className="input-field text-sm min-h-[65px]"
-                          value={newExInst}
-                          onChange={(e) => setNewExInst(e.target.value)}
-                        />
-                      </div>
+                      <Input
+                        label="Exercise Name"
+                        type="text"
+                        required
+                        placeholder="e.g. Elbow Flexion Routine"
+                        value={newExName}
+                        onChange={(e) => setNewExName(e.target.value)}
+                      />
+                      <Textarea
+                        label="Description"
+                        placeholder="Short summary of the exercise..."
+                        value={newExDesc}
+                        onChange={(e) => setNewExDesc(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <Textarea
+                        label="Instructions"
+                        placeholder="Instructions detailing flexion extension guides..."
+                        value={newExInst}
+                        onChange={(e) => setNewExInst(e.target.value)}
+                        className="min-h-[65px]"
+                      />
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Target ROM (Degrees)</label>
-                          <input
-                            type="number"
-                            placeholder="e.g. 135"
-                            className="input-field text-sm"
-                            value={newExRom}
-                            onChange={(e) => setNewExRom(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Thumbnail Graphic URL</label>
-                          <input
-                            type="text"
-                            placeholder="https://images.unsplash.com/..."
-                            className="input-field text-sm"
-                            value={newExThumb}
-                            onChange={(e) => setNewExThumb(e.target.value)}
-                          />
-                        </div>
+                        <Input
+                          label="Target ROM (Degrees)"
+                          type="number"
+                          placeholder="e.g. 135"
+                          value={newExRom}
+                          onChange={(e) => setNewExRom(e.target.value)}
+                        />
+                        <Input
+                          label="Thumbnail Graphic URL"
+                          type="text"
+                          placeholder="https://images.unsplash.com/..."
+                          value={newExThumb}
+                          onChange={(e) => setNewExThumb(e.target.value)}
+                        />
                       </div>
-                      <button
+                      <Button
                         type="submit"
-                        className="w-full btn-primary py-3 mt-2"
+                        className="w-full mt-2"
                       >
                         Create Exercise Template
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </div>
@@ -1359,67 +1288,54 @@ const AdminDashboard: React.FC = () => {
               {/* Modal: Edit Exercise */}
               {editExModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                  <div className="w-full max-w-md glass-card p-8 relative space-y-6">
-                    <button onClick={() => setEditExModalOpen(false)} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600">
+                  <div className="w-full max-w-md bg-chosen-raised border border-chosen rounded-chosen-lg p-8 relative space-y-6 shadow-chosen-modal">
+                    <Button variant="ghost" size="xs" onClick={() => setEditExModalOpen(false)} className="absolute top-5 right-5 text-chosen-text-muted hover:text-chosen-text-primary p-1">
                       <X className="h-5 w-5" />
-                    </button>
+                    </Button>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Edit Catalog Exercise</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Update instructions or guidelines for this motion capture.</p>
+                      <h3 className="font-display font-bold text-lg text-chosen-text-primary">Edit Catalog Exercise</h3>
+                      <p className="text-xs text-chosen-text-muted mt-1">Update instructions or guidelines for this motion capture.</p>
                     </div>
                     <form onSubmit={handleEditExercise} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Exercise Name</label>
-                        <input
-                          type="text"
-                          required
-                          className="input-field text-sm"
-                          value={editExName}
-                          onChange={(e) => setEditExName(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Description</label>
-                        <textarea
-                          className="input-field text-sm min-h-[60px]"
-                          value={editExDesc}
-                          onChange={(e) => setEditExDesc(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Instructions</label>
-                        <textarea
-                          className="input-field text-sm min-h-[65px]"
-                          value={editExInst}
-                          onChange={(e) => setEditExInst(e.target.value)}
-                        />
-                      </div>
+                      <Input
+                        label="Exercise Name"
+                        type="text"
+                        required
+                        value={editExName}
+                        onChange={(e) => setEditExName(e.target.value)}
+                      />
+                      <Textarea
+                        label="Description"
+                        value={editExDesc}
+                        onChange={(e) => setEditExDesc(e.target.value)}
+                        className="min-h-[60px]"
+                      />
+                      <Textarea
+                        label="Instructions"
+                        value={editExInst}
+                        onChange={(e) => setEditExInst(e.target.value)}
+                        className="min-h-[65px]"
+                      />
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Target ROM (Degrees)</label>
-                          <input
-                            type="number"
-                            className="input-field text-sm"
-                            value={editExRom}
-                            onChange={(e) => setEditExRom(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Thumbnail Graphic URL</label>
-                          <input
-                            type="text"
-                            className="input-field text-sm"
-                            value={editExThumb}
-                            onChange={(e) => setEditExThumb(e.target.value)}
-                          />
-                        </div>
+                        <Input
+                          label="Target ROM (Degrees)"
+                          type="number"
+                          value={editExRom}
+                          onChange={(e) => setEditExRom(e.target.value)}
+                        />
+                        <Input
+                          label="Thumbnail Graphic URL"
+                          type="text"
+                          value={editExThumb}
+                          onChange={(e) => setEditExThumb(e.target.value)}
+                        />
                       </div>
-                      <button
+                      <Button
                         type="submit"
-                        className="w-full btn-primary py-3 mt-2"
+                        className="w-full mt-2"
                       >
                         Save Exercise Changes
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </div>
@@ -1432,11 +1348,11 @@ const AdminDashboard: React.FC = () => {
               ========================================== */}
           {activeTab === 'reports' && (
             <div className="space-y-6 animate-slide-up">
-              <div className="glass-card p-6">
+              <Card>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 dark:border-slate-800 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      <tr className="border-b border-chosen text-xs font-semibold uppercase tracking-wider text-chosen-text-muted">
                         <th className="pb-3 pl-2">Session Title</th>
                         <th className="pb-3">Completed At</th>
                         <th className="pb-3">Flexion (ROM)</th>
@@ -1444,50 +1360,51 @@ const AdminDashboard: React.FC = () => {
                         <th className="pb-3 text-right pr-2">Replay</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                    <tbody className="divide-y divide-chosen">
                       {loadingReports ? (
-                        <tr><td colSpan={5} className="py-8 text-center text-slate-400">Loading motion reports...</td></tr>
+                        <tr><td colSpan={5} className="py-8 text-center text-chosen-text-muted">Loading motion reports...</td></tr>
                       ) : motionReports.length === 0 ? (
-                        <tr><td colSpan={5} className="py-8 text-center text-slate-400">No workout sessions recorded yet.</td></tr>
+                        <tr><td colSpan={5} className="py-8 text-center text-chosen-text-muted">No workout sessions recorded yet.</td></tr>
                       ) : (
                       motionReports.map((act) => (
-                        <tr key={act.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-all">
-                          <td className="py-4 pl-2 font-medium text-slate-900 dark:text-white">
+                        <tr key={act.id} className="hover:bg-chosen-surface/50 transition-all">
+                          <td className="py-4 pl-2 font-medium text-chosen-text-primary">
                             {act.title}
                           </td>
-                          <td className="py-4 text-slate-500 dark:text-slate-400">
+                          <td className="py-4 text-chosen-text-secondary">
                             {new Date(sessionTimestamp(act)).toLocaleString()}
                           </td>
-                          <td className="py-4 text-slate-600 dark:text-slate-300 font-semibold">
+                          <td className="py-4 text-chosen-text-primary font-semibold">
                             {sessionRom(act)}°
                           </td>
                           <td className="py-4">
-                            <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                            <Badge variant={
                               sessionFormScore(act) >= 90 
-                                ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' 
+                                ? 'success' 
                                 : sessionFormScore(act) >= 75
-                                  ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400'
-                                  : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
-                            }`}>
+                                  ? 'warning'
+                                  : 'error'
+                            }>
                               {sessionFormScore(act)}% Accuracy
-                            </span>
+                            </Badge>
                           </td>
                           <td className="py-4 text-right pr-2">
-                            <button
+                            <Button
+                              variant="secondary"
+                              size="xs"
                               onClick={() => navigate(`/admin/session/${act.id}`)}
-                              className="p-1.5 bg-slate-100 hover:bg-primary-100 dark:bg-slate-800 dark:hover:bg-primary-950/40 text-slate-500 hover:text-primary-500 dark:text-slate-400 dark:hover:text-primary-400 rounded-lg transition-all font-bold inline-flex items-center gap-1"
                               title="Replay Session"
+                              leftIcon={<PlayCircle className="h-4 w-4" />}
                             >
-                              <PlayCircle className="h-4 w-4" />
-                              <span className="text-[10px]">Replay</span>
-                            </button>
+                              Replay
+                            </Button>
                           </td>
                         </tr>
                       )))}
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </Card>
             </div>
           )}
 
@@ -1499,71 +1416,67 @@ const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 {/* ROM Curve */}
-                <div className="glass-card p-6 space-y-6">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Flexion (ROM) Recovery Progress</h3>
-                    <p className="text-xs text-slate-400 mt-1">Average degrees achieved over the last 4 weeks</p>
-                  </div>
-                  
-                  <div className="h-64 flex items-end gap-6 justify-between pt-6 border-b border-l border-slate-200 dark:border-slate-800 px-4">
+                <AnalyticsCard
+                  title="Flexion (ROM) Recovery Progress"
+                  subtitle="Average degrees achieved over the last 4 weeks"
+                >
+                  <div className="h-64 flex items-end gap-6 justify-between pt-6 border-b border-l border-chosen px-4">
                     <div className="flex flex-col items-center w-full gap-2">
-                      <div className="bg-primary-500/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '110px' }} />
-                      <span className="text-[10px] font-bold text-slate-400">Week 1 (110°)</span>
+                      <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '110px' }} />
+                      <span className="text-[10px] font-bold text-chosen-text-muted">Week 1 (110°)</span>
                     </div>
                     <div className="flex flex-col items-center w-full gap-2">
-                      <div className="bg-primary-500/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '120px' }} />
-                      <span className="text-[10px] font-bold text-slate-400">Week 2 (120°)</span>
+                      <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '120px' }} />
+                      <span className="text-[10px] font-bold text-chosen-text-muted">Week 2 (120°)</span>
                     </div>
                     <div className="flex flex-col items-center w-full gap-2">
-                      <div className="bg-primary-500/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '135px' }} />
-                      <span className="text-[10px] font-bold text-slate-400">Week 3 (135°)</span>
+                      <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '135px' }} />
+                      <span className="text-[10px] font-bold text-chosen-text-muted">Week 3 (135°)</span>
                     </div>
                     <div className="flex flex-col items-center w-full gap-2">
-                      <div className="bg-accent-500/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '142px' }} />
-                      <span className="text-[10px] font-bold text-slate-400">Week 4 (142°)</span>
+                      <div className="bg-gold-500 w-full rounded-t-lg transition-all duration-500" style={{ height: '142px' }} />
+                      <span className="text-[10px] font-bold text-chosen-text-muted">Week 4 (142°)</span>
                     </div>
                   </div>
-                </div>
+                </AnalyticsCard>
 
                 {/* Accuracy */}
-                <div className="glass-card p-6 space-y-6">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Form Alignment Scores</h3>
-                    <p className="text-xs text-slate-400 mt-1">Aggregated sensor tracking scores</p>
-                  </div>
-
+                <AnalyticsCard
+                  title="Form Alignment Scores"
+                  subtitle="Aggregated sensor tracking scores"
+                >
                   <div className="space-y-4 pt-4">
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 text-left">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-slate-600 dark:text-slate-400">Shoulder Alignment</span>
-                        <span className="text-slate-900 dark:text-white">94%</span>
+                        <span className="text-chosen-text-secondary">Shoulder Alignment</span>
+                        <span className="text-chosen-text-primary">94%</span>
                       </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div className="bg-primary-500 h-full rounded-full" style={{ width: '94%' }} />
+                      <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
+                        <div className="bg-gold-500 h-full rounded-full" style={{ width: '94%' }} />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 text-left">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-slate-600 dark:text-slate-400">Elbow Flexion</span>
-                        <span className="text-slate-900 dark:text-white">88%</span>
+                        <span className="text-chosen-text-secondary">Elbow Flexion</span>
+                        <span className="text-chosen-text-primary">88%</span>
                       </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div className="bg-primary-500 h-full rounded-full" style={{ width: '88%' }} />
+                      <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
+                        <div className="bg-gold-500 h-full rounded-full" style={{ width: '88%' }} />
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 text-left">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-slate-600 dark:text-slate-400">Knee Symmetry</span>
-                        <span className="text-slate-900 dark:text-white">92%</span>
+                        <span className="text-chosen-text-secondary">Knee Symmetry</span>
+                        <span className="text-chosen-text-primary">92%</span>
                       </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div className="bg-accent-500 h-full rounded-full" style={{ width: '92%' }} />
+                      <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
+                        <div className="bg-gold-500 h-full rounded-full" style={{ width: '92%' }} />
                       </div>
                     </div>
                   </div>
-                </div>
+                </AnalyticsCard>
               </div>
             </div>
           )}
@@ -1572,89 +1485,80 @@ const AdminDashboard: React.FC = () => {
               TAB: WEBSITE CONTENT
               ========================================== */}
           {activeTab === 'content' && (
-            <div className="glass-card p-8 max-w-2xl animate-slide-up space-y-6">
+            <Card className="max-w-2xl animate-slide-up space-y-6">
               <div>
-                <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">Landing Page Text Editor</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure the visible headlines and introduction blocks on the landing interface.</p>
+                <h3 className="font-display font-bold text-lg text-chosen-text-primary">Landing Page Text Editor</h3>
+                <p className="text-xs text-chosen-text-muted mt-1">Configure the visible headlines and introduction blocks on the landing interface.</p>
               </div>
 
               <div className="space-y-5">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Headline</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={homeHeadline}
-                    onChange={(e) => setHomeHeadline(e.target.value)}
-                  />
-                </div>
+                <Input
+                  label="Headline"
+                  type="text"
+                  value={homeHeadline}
+                  onChange={(e) => setHomeHeadline(e.target.value)}
+                />
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Introduction Paragraph</label>
-                  <textarea
-                    className="input-field min-h-[100px]"
-                    value={homeSubheadline}
-                    onChange={(e) => setHomeSubheadline(e.target.value)}
-                  />
-                </div>
+                <Textarea
+                  label="Introduction Paragraph"
+                  className="min-h-[100px]"
+                  value={homeSubheadline}
+                  onChange={(e) => setHomeSubheadline(e.target.value)}
+                />
 
-                <button 
+                <Button 
                   onClick={() => alert('Website landing content updated successfully.')}
-                  className="w-full btn-primary py-3"
+                  className="w-full"
                 >
                   Publish Changes
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* ==========================================
               TAB: SETTINGS
               ========================================== */}
           {activeTab === 'settings' && (
-            <div className="glass-card p-8 max-w-xl animate-slide-up space-y-6">
+            <Card className="max-w-xl animate-slide-up space-y-6">
               <div>
-                <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">System Configurations</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage global preferences and compliance thresholds.</p>
+                <h3 className="font-display font-bold text-lg text-chosen-text-primary">System Configurations</h3>
+                <p className="text-xs text-chosen-text-muted mt-1">Manage global preferences and compliance thresholds.</p>
               </div>
 
               <div className="space-y-5">
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl">
+                <div className="flex items-center justify-between p-4 bg-chosen-surface border border-chosen rounded-chosen-lg">
                   <div>
-                    <h5 className="text-sm font-semibold text-slate-900 dark:text-white">Enable Activity Alerts</h5>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Send reminders for overdue rehabilitation tasks.</p>
+                    <h5 className="text-sm font-semibold text-chosen-text-primary">Enable Activity Alerts</h5>
+                    <p className="text-xs text-chosen-text-muted mt-0.5">Send reminders for overdue rehabilitation tasks.</p>
                   </div>
-                  <input
-                    type="checkbox"
+                  <Toggle
                     checked={enableAlerts}
-                    onChange={() => setEnableAlerts(!enableAlerts)}
-                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 rounded"
+                    onChange={(checked) => setEnableAlerts(checked)}
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl">
+                <div className="flex items-center justify-between p-4 bg-chosen-surface border border-chosen rounded-chosen-lg">
                   <div>
-                    <h5 className="text-sm font-semibold text-slate-900 dark:text-white">Require Compliance Consents</h5>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Prompt patients for HIPAA/data sharing agreements.</p>
+                    <h5 className="text-sm font-semibold text-chosen-text-primary">Require Compliance Consents</h5>
+                    <p className="text-xs text-chosen-text-muted mt-0.5">Prompt patients for HIPAA/data sharing agreements.</p>
                   </div>
-                  <input
-                    type="checkbox"
+                  <Toggle
                     checked={requireConsent}
-                    onChange={() => setRequireConsent(!requireConsent)}
-                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 rounded"
+                    onChange={(checked) => setRequireConsent(checked)}
                   />
                 </div>
 
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <button 
+                <div className="pt-4 border-t border-chosen">
+                  <Button 
                     onClick={() => alert('Global configurations saved.')}
-                    className="w-full btn-primary py-3"
+                    className="w-full"
                   >
                     Save Settings
-                  </button>
+                  </Button>
                 </div>
               </div>
-            </div>
+            </Card>
           )}
         </main>
       </div>

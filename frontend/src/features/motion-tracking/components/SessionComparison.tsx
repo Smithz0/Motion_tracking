@@ -25,11 +25,11 @@ export const SessionComparison: React.FC<SessionComparisonProps> = ({ comparison
 
   if (!previous_session_id) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center gap-3">
-        <TrendingUp className="h-10 w-10 text-cyan-400 animate-pulse" />
+      <div className="flex flex-col items-center justify-center p-8 rounded-chosen-lg bg-chosen-surface border border-chosen text-center gap-3">
+        <TrendingUp className="h-10 w-10 text-gold-500 animate-pulse" />
         <div className="flex flex-col">
-          <span className="text-sm font-bold text-white">First Session Recorded</span>
-          <span className="text-xs text-slate-400 mt-1">Comparison metrics will populate once you record your next session of this exercise.</span>
+          <span className="text-sm font-bold text-chosen-text-primary">First Session Recorded</span>
+          <span className="text-xs text-chosen-text-secondary mt-1">Comparison metrics will populate once you record your next session of this exercise.</span>
         </div>
       </div>
     );
@@ -46,10 +46,10 @@ export const SessionComparison: React.FC<SessionComparisonProps> = ({ comparison
     const isNoChange = data.delta === 0;
 
     const getDeltaColor = () => {
-      if (isNoChange) return 'text-slate-400 bg-slate-800/50';
+      if (isNoChange) return 'text-chosen-text-muted bg-chosen-bg border border-chosen';
       return isImproved 
-        ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/10' 
-        : 'text-rose-400 bg-rose-500/10 border border-rose-500/10';
+        ? 'text-success bg-success-light border border-success/20' 
+        : 'text-error bg-error-light border border-error/20';
     };
 
     const getDeltaIcon = () => {
@@ -64,19 +64,19 @@ export const SessionComparison: React.FC<SessionComparisonProps> = ({ comparison
     };
 
     return (
-      <div className="grid grid-cols-4 items-center py-3.5 border-b border-slate-850 last:border-b-0 hover:bg-slate-900/30 px-2 rounded-lg transition-all">
+      <div className="grid grid-cols-4 items-center py-3.5 border-b border-chosen last:border-b-0 hover:bg-chosen-bg/50 px-2 rounded-chosen-sm transition-all">
         {/* Metric Name */}
-        <span className="text-xs font-bold text-slate-300 text-left">{label}</span>
+        <span className="text-xs font-bold text-chosen-text-secondary text-left">{label}</span>
 
         {/* Previous Session */}
-        <span className="text-xs font-mono text-slate-400">{formatVal(data.previous)}{unit}</span>
+        <span className="text-xs font-mono text-chosen-text-muted">{formatVal(data.previous)}{unit}</span>
 
         {/* Current Session */}
-        <span className="text-xs font-mono text-white font-bold">{formatVal(data.current)}{unit}</span>
+        <span className="text-xs font-mono text-chosen-text-primary font-bold">{formatVal(data.current)}{unit}</span>
 
         {/* Comparison Delta */}
         <div className="flex justify-end">
-          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-bold ${getDeltaColor()}`}>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-chosen-sm text-xs font-mono font-bold ${getDeltaColor()}`}>
             {getDeltaIcon()}
             {data.delta > 0 ? '+' : ''}{formatVal(data.delta)}{unit}
           </span>
@@ -92,18 +92,18 @@ export const SessionComparison: React.FC<SessionComparisonProps> = ({ comparison
   const isOverallImprovement = positiveDeltasCount >= 2;
 
   return (
-    <div className="flex flex-col gap-4 w-full bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
+    <div className="flex flex-col gap-4 w-full bg-chosen-surface border border-chosen p-5 rounded-chosen-lg shadow-chosen-sm">
       
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 text-left">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-chosen pb-4 text-left">
         <div className="flex flex-col gap-1">
-          <h4 className="text-sm font-bold text-white uppercase tracking-wider">Progress Comparison</h4>
-          <p className="text-xs text-slate-400">Comparing current session against your last attempt</p>
+          <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Progress Comparison</h4>
+          <p className="text-xs text-chosen-text-secondary">Comparing current session against your last attempt</p>
         </div>
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold ${
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-chosen-md border text-xs font-bold ${
           isOverallImprovement 
-            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-            : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            ? 'bg-success-light text-success border-success/20' 
+            : 'bg-error-light text-error border-error/20'
         }`}>
           {isOverallImprovement ? (
             <>
@@ -120,7 +120,7 @@ export const SessionComparison: React.FC<SessionComparisonProps> = ({ comparison
       </div>
 
       {/* Table Headers */}
-      <div className="grid grid-cols-4 text-slate-500 text-[10px] font-bold uppercase tracking-wider px-2 py-1.5 border-b border-slate-850">
+      <div className="grid grid-cols-4 text-chosen-text-muted text-[10px] font-bold uppercase tracking-wider px-2 py-1.5 border-b border-chosen">
         <span className="text-left">Metric</span>
         <span className="text-left">Previous</span>
         <span className="text-left">Current</span>

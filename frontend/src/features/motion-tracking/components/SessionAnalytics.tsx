@@ -125,56 +125,58 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
   const getInsightIcon = (status: 'good' | 'warn' | 'bad') => {
     switch (status) {
       case 'good':
-        return <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />;
+        return <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />;
       case 'warn':
-        return <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />;
+        return <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />;
       case 'bad':
-        return <XCircle className="h-4 w-4 text-rose-400 flex-shrink-0" />;
+        return <XCircle className="h-4 w-4 text-error flex-shrink-0" />;
     }
   };
 
   const getInsightBorder = (status: 'good' | 'warn' | 'bad') => {
     switch (status) {
       case 'good':
-        return 'border-emerald-500/20 bg-emerald-500/5';
+        return 'border-success/20 bg-success-light';
       case 'warn':
-        return 'border-amber-500/20 bg-amber-500/5';
+        return 'border-warning/20 bg-warning-light';
       case 'bad':
-        return 'border-rose-500/20 bg-rose-500/5';
+        return 'border-error/20 bg-error-light';
     }
   };
 
   const chartTooltipStyle = {
-    backgroundColor: '#0f172a',
-    borderColor: '#334155',
-    borderRadius: '8px',
-    color: '#fff'
+    backgroundColor: 'var(--surface-raised)',
+    borderColor: 'var(--border)',
+    borderRadius: 'var(--radius-md)',
+    color: 'var(--text-primary)',
+    fontSize: '12px',
+    boxShadow: 'var(--shadow-sm)'
   };
 
   return (
     <div className="flex flex-col gap-5 w-full pb-2">
       {/* Session insights */}
       {insights.length > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+        <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
           <div className="flex flex-col gap-1 mb-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Session Insights</h4>
-            <p className="text-xs text-slate-400">Detailed analysis derived from per-frame telemetry data</p>
+            <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Session Insights</h4>
+            <p className="text-xs text-chosen-text-secondary">Detailed analysis derived from per-frame telemetry data</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {insights.map((insight) => (
               <div
                 key={insight.label}
-                className={`flex items-start gap-3 p-3.5 rounded-xl border ${getInsightBorder(insight.status)}`}
+                className={`flex items-start gap-3 p-3.5 rounded-chosen-md border ${getInsightBorder(insight.status)}`}
               >
                 {getInsightIcon(insight.status)}
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-chosen-text-secondary uppercase tracking-wider">
                       {insight.label}
                     </span>
-                    <span className="text-sm font-bold text-white font-mono">{insight.value}</span>
+                    <span className="text-sm font-bold text-chosen-text-primary font-mono">{insight.value}</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{insight.detail}</p>
+                  <p className="text-xs text-chosen-text-secondary mt-1 leading-relaxed">{insight.detail}</p>
                 </div>
               </div>
             ))}
@@ -184,23 +186,23 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
 
       {/* Tempo breakdown for squats */}
       {squatAnalysis && squatAnalysis.tutMs > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+        <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
           <div className="flex flex-col gap-1 mb-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Tempo Analysis</h4>
-            <p className="text-xs text-slate-400">Eccentric vs concentric phase breakdown across all reps</p>
+            <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Tempo Analysis</h4>
+            <p className="text-xs text-chosen-text-secondary">Eccentric vs concentric phase breakdown across all reps</p>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 text-center">
-              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Eccentric</span>
-              <span className="text-lg font-bold text-amber-400 mt-1 block">{formatMs(squatAnalysis.eccentricMs)}</span>
+            <div className="p-4 rounded-chosen-md bg-chosen-bg border border-chosen text-center">
+              <span className="text-[10px] text-chosen-text-muted uppercase font-bold tracking-wider block">Eccentric</span>
+              <span className="text-lg font-bold text-warning-dark dark:text-warning mt-1 block">{formatMs(squatAnalysis.eccentricMs)}</span>
             </div>
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 text-center">
-              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Concentric</span>
-              <span className="text-lg font-bold text-cyan-400 mt-1 block">{formatMs(squatAnalysis.concentricMs)}</span>
+            <div className="p-4 rounded-chosen-md bg-chosen-bg border border-chosen text-center">
+              <span className="text-[10px] text-chosen-text-muted uppercase font-bold tracking-wider block">Concentric</span>
+              <span className="text-lg font-bold text-info mt-1 block">{formatMs(squatAnalysis.concentricMs)}</span>
             </div>
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-850 text-center">
-              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Total TUT</span>
-              <span className="text-lg font-bold text-violet-400 mt-1 block">{formatMs(squatAnalysis.tutMs)}</span>
+            <div className="p-4 rounded-chosen-md bg-chosen-bg border border-chosen text-center">
+              <span className="text-[10px] text-chosen-text-muted uppercase font-bold tracking-wider block">Total TUT</span>
+              <span className="text-lg font-bold text-gold-600 dark:text-gold-400 mt-1 block">{formatMs(squatAnalysis.tutMs)}</span>
             </div>
           </div>
         </div>
@@ -208,34 +210,34 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
 
       {/* Joint angle waveform */}
       {currentSessionData.length > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+        <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
           <div className="flex flex-col gap-1 mb-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Joint Angle Waveform</h4>
-            <p className="text-xs text-slate-400">Flexion / extension cycles across session duration (seconds)</p>
+            <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Joint Angle Waveform</h4>
+            <p className="text-xs text-chosen-text-secondary">Flexion / extension cycles across session duration (seconds)</p>
           </div>
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={currentSessionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={[0, 180]} />
+               <LineChart data={currentSessionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} domain={[0, 180]} />
                 <Tooltip contentStyle={chartTooltipStyle} labelFormatter={(label) => `Time: ${label}s`} />
                 {activeJointKey === 'squat' && (
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
                 )}
                 {activeJointKey === 'squat' ? (
                   <>
-                    <Line type="monotone" dataKey="Knee Angle" stroke="#34d399" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Hip Angle" stroke="#22d3ee" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Knee Angle" stroke="var(--success)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Hip Angle" stroke="var(--info)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
                   </>
                 ) : (
                   <Line
                     type="monotone"
                     dataKey="Angle"
-                    stroke="#22d3ee"
+                    stroke="var(--info)"
                     strokeWidth={2.5}
                     dot={false}
-                    activeDot={{ r: 6, strokeWidth: 0, fill: '#22d3ee' }}
+                    activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--info)' }}
                   />
                 )}
               </LineChart>
@@ -246,28 +248,28 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
 
       {/* Symmetry waveform for squats */}
       {activeJointKey === 'squat' && currentSessionData.length > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+        <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
           <div className="flex flex-col gap-1 mb-4">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">Bilateral Symmetry Trend</h4>
-            <p className="text-xs text-slate-400">Left/right knee coordination over time — dips indicate imbalance</p>
+            <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Bilateral Symmetry Trend</h4>
+            <p className="text-xs text-chosen-text-secondary">Left/right knee coordination over time — dips indicate imbalance</p>
           </div>
           <div className="h-44 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={currentSessionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="symmetryGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#a78bfa" stopOpacity={0} />
+                    <stop offset="5%" stopColor="var(--focus)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--focus)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={[60, 100]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} domain={[60, 100]} />
                 <Tooltip contentStyle={chartTooltipStyle} labelFormatter={(label) => `Time: ${label}s`} />
                 <Area
                   type="monotone"
                   dataKey="Symmetry"
-                  stroke="#a78bfa"
+                  stroke="var(--focus)"
                   strokeWidth={2}
                   fill="url(#symmetryGrad)"
                   dot={false}
@@ -281,41 +283,41 @@ export const SessionAnalytics: React.FC<SessionAnalyticsProps> = ({
       {/* Historical trends */}
       {trendData.length > 1 && (
         <div className="grid grid-cols-1 gap-5">
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+          <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
             <div className="flex flex-col gap-1 mb-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">ROM & Form Progress</h4>
-              <p className="text-xs text-slate-400">Range of motion and accuracy across prior sessions</p>
+              <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">ROM & Form Progress</h4>
+              <p className="text-xs text-chosen-text-secondary">Range of motion and accuracy across prior sessions</p>
             </div>
             <div className="h-52 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                  <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} />
                   <Tooltip contentStyle={chartTooltipStyle} />
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
-                  <Line type="monotone" dataKey="ROM" name="ROM (deg)" stroke="#22d3ee" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Accuracy" name="Accuracy (%)" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="ROM" name="ROM (deg)" stroke="var(--info)" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Accuracy" name="Accuracy (%)" stroke="var(--focus)" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col text-left">
+          <div className="bg-chosen-surface border border-chosen p-5 rounded-chosen-lg flex flex-col text-left">
             <div className="flex flex-col gap-1 mb-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Speed & Symmetry Trends</h4>
-              <p className="text-xs text-slate-400">Movement speed and bilateral coordination over time</p>
+              <h4 className="text-sm font-bold text-chosen-text-primary uppercase tracking-wider">Speed & Symmetry Trends</h4>
+              <p className="text-xs text-chosen-text-secondary">Movement speed and bilateral coordination over time</p>
             </div>
             <div className="h-52 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                  <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={10} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} />
                   <Tooltip contentStyle={chartTooltipStyle} />
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
-                  <Line type="monotone" dataKey="Speed" name="Speed (deg/s)" stroke="#34d399" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Symmetry" name="Symmetry (%)" stroke="#fb7185" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Speed" name="Speed (deg/s)" stroke="var(--info)" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Symmetry" name="Symmetry (%)" stroke="var(--focus)" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { ArrowLeft, Loader2, AlertCircle, BarChart3, ShieldAlert, GitCompare } from 'lucide-react';
+import { ArrowLeft, AlertCircle, BarChart3, ShieldAlert, GitCompare } from 'lucide-react';
 import {
   fetchSessionDetail,
   fetchSessionFrames,
@@ -15,6 +15,8 @@ import { MetricsPanel } from './MetricsPanel';
 import { ErrorList } from './ErrorList';
 import { SessionComparison } from './SessionComparison';
 import { SessionAnalytics } from './SessionAnalytics';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Status';
 
 export const SessionReplayPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -95,10 +97,10 @@ export const SessionReplayPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-chosen-bg text-chosen-text-primary">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 text-cyan-400 animate-spin" />
-          <span className="text-sm font-semibold uppercase tracking-wider text-slate-400">Loading Telemetry Replay...</span>
+          <Spinner size="lg" />
+          <span className="text-sm font-semibold uppercase tracking-wider text-chosen-text-muted">Loading Telemetry Replay...</span>
         </div>
       </div>
     );
@@ -106,42 +108,43 @@ export const SessionReplayPage: React.FC = () => {
 
   if (error || !session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6 text-white">
-        <div className="max-w-md w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center gap-4 text-center">
-          <AlertCircle className="h-12 w-12 text-rose-500" />
+      <div className="min-h-screen flex items-center justify-center bg-chosen-bg p-6 text-chosen-text-primary">
+        <div className="max-w-md w-full p-6 bg-chosen-raised border border-chosen rounded-chosen-lg flex flex-col items-center gap-4 text-center shadow-chosen-lg">
+          <AlertCircle className="h-12 w-12 text-error" />
           <h3 className="text-lg font-bold">Error Loading Session</h3>
-          <p className="text-sm text-slate-400">{error || 'Session details could not be found.'}</p>
-          <button
+          <p className="text-sm text-chosen-text-muted">{error || 'Session details could not be found.'}</p>
+          <Button
             onClick={handleBack}
-            className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-all border border-slate-700"
+            variant="secondary"
+            leftIcon={<ArrowLeft className="h-4 w-4" />}
+            className="mt-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Return to Dashboard</span>
-          </button>
+            Return to Dashboard
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-6 lg:p-8 flex flex-col gap-6">
+    <div className="min-h-screen bg-chosen-bg text-chosen-text-primary p-4 md:p-6 lg:p-8 flex flex-col gap-6">
       
       {/* Top Navigation / Breadcrumb */}
-      <div className="flex items-center justify-between border-b border-slate-900 pb-5">
+      <div className="flex items-center justify-between border-b border-chosen pb-5">
         <div className="flex items-center gap-4 text-left">
-          <button
+          <Button
             onClick={handleBack}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 transition-all text-slate-400 hover:text-white"
+            variant="outline"
+            size="sm"
             title="Back to Dashboard"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+            leftIcon={<ArrowLeft className="h-5 w-5" />}
+          />
           
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Skeletal Assessment</span>
+            <span className="text-xs font-bold text-chosen-text-muted uppercase tracking-widest">Skeletal Assessment</span>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-extrabold tracking-tight">{session.title || 'Motion Session'}</h2>
-              <span className="text-xs font-mono px-2 py-0.5 bg-slate-900 border border-slate-800 text-slate-400 rounded-md">
+              <h2 className="text-xl font-extrabold tracking-tight text-chosen-text-primary">{session.title || 'Motion Session'}</h2>
+              <span className="text-xs font-mono px-2 py-0.5 bg-chosen-surface border border-chosen text-chosen-text-muted rounded-chosen-sm">
                 ID: {session.id}
               </span>
             </div>
@@ -150,8 +153,8 @@ export const SessionReplayPage: React.FC = () => {
 
         {profile?.role === 'admin' && (
           <div className="hidden sm:flex flex-col items-end text-right">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Patient Profile</span>
-            <span className="text-sm font-bold text-cyan-400">{session.patient_id}</span>
+            <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Patient Profile</span>
+            <span className="text-sm font-bold text-gold-550">{session.patient_id}</span>
           </div>
         )}
       </div>
@@ -178,15 +181,15 @@ export const SessionReplayPage: React.FC = () => {
 
         {/* Right: Tabbed Detail Controls HUD (5 cols) */}
         <div className="lg:col-span-5 flex flex-col min-h-[520px] lg:min-h-0 lg:h-full w-full">
-          <div className="flex flex-col flex-1 min-h-0 bg-slate-900/40 border border-slate-850 rounded-2xl overflow-hidden">
+          <div className="flex flex-col flex-1 min-h-0 bg-chosen-raised border border-chosen rounded-chosen-lg overflow-hidden">
             {/* Tab selectors */}
-            <div className="flex-shrink-0 flex p-1.5 m-3 mb-0 bg-slate-950 border border-slate-850 rounded-xl gap-1">
+            <div className="flex-shrink-0 flex p-1.5 m-3 mb-0 bg-chosen-surface border border-chosen rounded-chosen-md gap-1">
               <button
                 onClick={() => setActiveTab('alerts')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-chosen-sm transition-all ${
                   activeTab === 'alerts'
-                    ? 'bg-slate-800 text-cyan-400 border border-slate-750 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-gold-500/10 text-gold-500 border border-gold-500/20 shadow-chosen-sm'
+                    : 'text-chosen-text-secondary hover:text-chosen-text-primary'
                 }`}
               >
                 <ShieldAlert className="h-4 w-4" />
@@ -194,10 +197,10 @@ export const SessionReplayPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-chosen-sm transition-all ${
                   activeTab === 'analytics'
-                    ? 'bg-slate-800 text-cyan-400 border border-slate-750 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-gold-500/10 text-gold-500 border border-gold-500/20 shadow-chosen-sm'
+                    : 'text-chosen-text-secondary hover:text-chosen-text-primary'
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
@@ -206,10 +209,10 @@ export const SessionReplayPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('compare')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-bold rounded-chosen-sm transition-all ${
                   activeTab === 'compare'
-                    ? 'bg-slate-800 text-cyan-400 border border-slate-750 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-gold-500/10 text-gold-500 border border-gold-500/20 shadow-chosen-sm'
+                    : 'text-chosen-text-secondary hover:text-chosen-text-primary'
                 }`}
               >
                 <GitCompare className="h-4 w-4" />

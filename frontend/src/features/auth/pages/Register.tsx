@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { syncUserWithBackend, signUpWithBackend } from '@/services/api';
-import { Activity, Lock, Mail, User, Shield, AlertCircle, Loader2 } from 'lucide-react';
+import { Activity, Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,7 +33,6 @@ const Register: React.FC = () => {
         });
 
         if (data.access_token) {
-          // Set supabase session
           await supabase.auth.setSession({
             access_token: data.access_token,
             refresh_token: data.refresh_token || '',
@@ -47,7 +48,6 @@ const Register: React.FC = () => {
         setLoading(false);
       }
     } else {
-      // Clinician flow
       const { error: signUpErr, data } = await supabase.auth.signUp({
         email,
         password,
@@ -88,17 +88,19 @@ const Register: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-light via-slate-100 to-indigo-50 dark:from-brand-dark dark:via-slate-950 dark:to-indigo-950 px-4">
-        <div className="w-full max-w-md glass-card p-8 text-center animate-fade-in">
-          <div className="h-12 w-12 bg-accent-500 rounded-2xl flex items-center justify-center text-white mb-5 mx-auto shadow-premium">
-            <Shield className="h-6 w-6" />
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFBFC] dark:bg-[#0d0c18] px-4 transition-colors duration-250">
+        <div className="w-full max-w-md bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-700 p-8 text-center rounded-chosen-lg shadow-chosen-lg animate-fade-in text-left">
+          <div className="h-12 w-12 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] mb-5 mx-auto shadow-chosen-sm">
+            <Shield className="h-6 w-6 text-[#A27B41]" />
           </div>
-          <h1 className="font-display font-bold text-2xl text-slate-900 dark:text-white mb-2">Registration Successful</h1>
-          <p className="text-slate-600 dark:text-slate-400 mb-6">
+          <h1 className="font-display font-bold text-2xl text-[#0D0C18] dark:text-white mb-2 text-center">Registration Successful</h1>
+          <p className="text-xs text-[#525252] dark:text-[#a3a3a3] mb-6 text-center leading-relaxed">
             We have sent a confirmation email. Please verify your email before logging in.
           </p>
-          <Link to="/login" className="w-full btn-primary py-3.5">
-            Proceed to Login
+          <Link to="/login" className="w-full block">
+            <Button variant="primary" className="w-full py-3.5">
+              Proceed to Login
+            </Button>
           </Link>
         </div>
       </div>
@@ -106,128 +108,103 @@ const Register: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-light via-slate-100 to-indigo-50 dark:from-brand-dark dark:via-slate-950 dark:to-indigo-950 px-4 py-12">
-      <div className="w-full max-w-md glass-card p-8 animate-fade-in">
-        <div className="flex flex-col items-center mb-8">
-          <div className="h-12 w-12 bg-primary-500 rounded-2xl flex items-center justify-center text-white mb-3 shadow-premium">
-            <Activity className="h-6 w-6" />
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFBFC] dark:bg-[#0d0c18] px-4 py-12 transition-colors duration-250">
+      <div className="w-full max-w-md bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-700 p-8 rounded-chosen-lg shadow-chosen-lg animate-fade-in text-left">
+        
+        <div className="flex flex-col items-center mb-8 text-center">
+          <div className="h-12 w-12 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] mb-3 shadow-chosen-sm">
+            <Activity className="h-6 w-6 text-[#A27B41]" />
           </div>
-          <h1 className="font-display font-bold text-2xl text-slate-900 dark:text-white">Join Chosen Motion</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Create an account to begin tracking motion</p>
+          <h1 className="font-display font-bold text-2xl text-[#0D0C18] dark:text-white">Join Chosen Life</h1>
+          <p className="text-xs text-[#525252] dark:text-[#a3a3a3] mt-1">Create an account to begin tracking motion</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 bg-[#F5E6E6] border border-[#F5DBDB] rounded-chosen-md text-[#D15858] text-xs flex items-start gap-3">
+            <AlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">First Name</label>
-              <input
-                type="text"
-                required
-                className="input-field"
-                placeholder="John"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Last Name</label>
-              <input
-                type="text"
-                required
-                className="input-field"
-                placeholder="Doe"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-            </div>
+            <Input
+              label="First Name"
+              type="text"
+              required
+              placeholder="John"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <Input
+              label="Last Name"
+              type="text"
+              required
+              placeholder="Doe"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-              <input
-                type="email"
-                required
-                className="input-field pl-12"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
+          <Input
+            label="Email Address"
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            icon={<Mail className="h-4 w-4 text-charcoal-400" />}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-              <input
-                type="password"
-                required
-                className="input-field pl-12"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            required
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            icon={<Lock className="h-4 w-4 text-charcoal-400" />}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">I am signing up as a...</label>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-chosen-text-secondary select-none">
+              I am signing up as a...
+            </label>
             <div className="grid grid-cols-2 gap-3">
-              <button
+              <Button
                 type="button"
-                className={`py-3 px-4 rounded-xl border font-medium text-sm flex items-center justify-center gap-2 transition-all ${
-                  role === 'patient'
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400 ring-2 ring-primary-500/20'
-                    : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900'
-                }`}
+                variant={role === 'patient' ? 'primary' : 'outline'}
                 onClick={() => setRole('patient')}
+                leftIcon={<User className="h-4 w-4" />}
+                className="w-full font-bold"
               >
-                <User className="h-4 w-4" />
                 Patient
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={`py-3 px-4 rounded-xl border font-medium text-sm flex items-center justify-center gap-2 transition-all ${
-                  role === 'admin'
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400 ring-2 ring-primary-500/20'
-                    : 'border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900'
-                }`}
+                variant={role === 'admin' ? 'primary' : 'outline'}
                 onClick={() => setRole('admin')}
+                leftIcon={<Shield className="h-4 w-4" />}
+                className="w-full font-bold"
               >
-                <Shield className="h-4 w-4" />
                 Clinician
-              </button>
+              </Button>
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full btn-primary mt-4 py-3.5"
+            variant="primary"
+            isLoading={loading}
+            className="w-full mt-4 py-3.5"
           >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Registering Account...
-              </>
-            ) : (
-              'Create Account'
-            )}
-          </button>
+            Create Account
+          </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div className="mt-6 text-center text-xs text-[#525252] dark:text-[#a3a3a3]">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-500 hover:text-primary-600 font-medium transition-colors">
+          <Link to="/login" className="text-[#A27B41] hover:underline font-bold transition-colors">
             Sign In
           </Link>
         </div>

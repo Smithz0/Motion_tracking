@@ -3,7 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { loginWithBackend } from '@/services/api';
-import { Activity, Lock, Mail, AlertCircle, Loader2, User, Shield } from 'lucide-react';
+import { Activity, Lock, Mail, AlertCircle, User, Shield } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 const Login: React.FC = () => {
   const { signInMock } = useAuth();
@@ -46,97 +48,88 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-light via-slate-100 to-indigo-50 dark:from-brand-dark dark:via-slate-950 dark:to-indigo-950 px-4">
-      <div className="w-full max-w-md glass-card p-8 animate-fade-in">
-        <div className="flex flex-col items-center mb-8">
-          <div className="h-12 w-12 bg-primary-500 rounded-2xl flex items-center justify-center text-white mb-3 shadow-premium">
-            <Activity className="h-6 w-6" />
+    <div className="min-h-screen flex items-center justify-center bg-[#FAFBFC] dark:bg-[#0d0c18] px-4 transition-colors duration-250">
+      <div className="w-full max-w-md bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-700 p-8 rounded-chosen-lg shadow-chosen-lg animate-fade-in text-left">
+        
+        <div className="flex flex-col items-center mb-8 text-center">
+          <div className="h-12 w-12 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] mb-3 shadow-chosen-sm">
+            <Activity className="h-6 w-6 text-[#A27B41]" />
           </div>
-          <h1 className="font-display font-bold text-2xl text-slate-900 dark:text-white">Chosen Motion</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sign in to your patient or clinician account</p>
+          <h1 className="font-display font-bold text-2xl text-[#0D0C18] dark:text-white">Chosen Life</h1>
+          <p className="text-xs text-[#525252] dark:text-[#a3a3a3] mt-1">Sign in to your patient or clinician account</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 bg-[#F5E6E6] border border-[#F5DBDB] rounded-chosen-md text-[#D15858] text-xs flex items-start gap-3">
+            <AlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-              <input
-                type="email"
-                required
-                className="input-field pl-12"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
+          <Input
+            label="Email Address"
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            icon={<Mail className="h-4 w-4 text-charcoal-400" />}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-              <input
-                type="password"
-                required
-                className="input-field pl-12"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            required
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            icon={<Lock className="h-4 w-4 text-charcoal-400" />}
+          />
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full btn-primary mt-2 py-3.5"
+            variant="primary"
+            isLoading={loading}
+            className="w-full mt-2 py-3.5"
           >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </button>
+            Sign In
+          </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div className="mt-6 text-center text-xs text-[#525252] dark:text-[#a3a3a3]">
           Don't have an account?{' '}
-          <Link to="/register" className="text-primary-500 hover:text-primary-600 font-medium transition-colors">
+          <Link to="/register" className="text-[#A27B41] hover:underline font-bold transition-colors">
             Create an Account
           </Link>
         </div>
 
         {/* Sandbox Dev Mode Bypass */}
-        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/80">
-          <div className="text-center text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase mb-4">
-            Sandbox Sandbox / Demo Mode
+        <div className="mt-6 pt-6 border-t border-[#E5E5E5] dark:border-charcoal-800">
+          <div className="text-center text-[10px] font-bold tracking-widest text-[#a3a3a3] uppercase mb-4">
+            Sandbox / Demo Mode
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <button
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => handleSandboxLogin('patient')}
-              className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              leftIcon={<User className="h-3.5 w-3.5 text-[#A27B41]" />}
+              className="w-full py-2.5 font-bold"
             >
-              <User className="h-3.5 w-3.5" />
               Demo Patient
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => handleSandboxLogin('admin')}
-              className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all"
+              leftIcon={<Shield className="h-3.5 w-3.5 text-[#A27B41]" />}
+              className="w-full py-2.5 font-bold"
             >
-              <Shield className="h-3.5 w-3.5" />
               Demo Clinician
-            </button>
+            </Button>
           </div>
         </div>
 
