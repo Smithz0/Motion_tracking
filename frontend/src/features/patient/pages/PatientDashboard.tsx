@@ -219,6 +219,35 @@ const PatientDashboard: React.FC = () => {
   const [rescheduleTime, setRescheduleTime] = useState<string>('');
   const [showRescheduleSuccess, setShowRescheduleSuccess] = useState<boolean>(false);
 
+  // Profile settings and sub-modals states
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState<boolean>(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
+  const [showNotificationSettingsModal, setShowNotificationSettingsModal] = useState<boolean>(false);
+  const [showPrivacySettingsModal, setShowPrivacySettingsModal] = useState<boolean>(false);
+  const [themePreference, setThemePreference] = useState<'system' | 'light' | 'dark'>('system');
+  const [languagePreference, setLanguagePreference] = useState<'english' | 'spanish' | 'french'>('english');
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  const [editableFirstName, setEditableFirstName] = useState<string>('');
+  const [editableLastName, setEditableLastName] = useState<string>('');
+  const [editableEmail, setEditableEmail] = useState<string>('');
+  const [editablePhone, setEditablePhone] = useState<string>('');
+
+  useEffect(() => {
+    if (profile) {
+      setEditableFirstName(profile.firstName || '');
+      setEditableLastName(profile.lastName || '');
+      setEditableEmail(profile.email || '');
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (clinicalProfile) {
+      setEditablePhone(clinicalProfile.phone || '+1 (555) 019-2831');
+    }
+  }, [clinicalProfile]);
+
   // Initialize selected appointment focus on mount
   useEffect(() => {
     const todayAppt = appointmentsList.find(a => a.date === '2026-06-25' && a.status === 'upcoming');
@@ -708,7 +737,7 @@ const PatientDashboard: React.FC = () => {
   );
 
   const statsRow = (
-    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-4 md:gap-6 w-full animate-fade-in">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 w-full animate-fade-in">
       <StatisticCard
         label="Sessions Done"
         value={sessions.length}
@@ -2516,119 +2545,978 @@ const PatientDashboard: React.FC = () => {
     );
   };
 
-  const mobileProfileTab = (
-    <div className="space-y-6 text-left animate-slide-up pb-10">
-      <div className="bg-[#FAFBFC] dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-6 flex flex-col items-center text-center space-y-4 shadow-chosen-sm">
-        <div className="h-20 w-20 rounded-full bg-[#D9D9D9] dark:bg-charcoal-800 border-2 border-white dark:border-charcoal-700 shadow-chosen-md flex items-center justify-center font-bold text-2xl text-[#0D0C18] dark:text-white uppercase select-none">
-          {profile?.firstName?.[0] || 'P'}
+  const getPatientInitials = () => {
+    const fn = editableFirstName || profile?.firstName || 'P';
+    const ln = editableLastName || profile?.lastName || '';
+    return (fn[0] + (ln[0] || '')).toUpperCase();
+  };
+
+  const getPatientId = () => {
+    return clinicalProfile?.id ? `PL-${String(clinicalProfile.id).slice(0, 4).toUpperCase()}` : 'PL-9042';
+  };
+
+  const getRecentSessions = () => {
+    return [...sessions].slice(0, 3);
+  };
+
+  const uniqueExercisesCount = new Set(sessions.map(s => s.exercise_id)).size;
+
+  const renderProfileMobile = () => {
+    return (
+      <div className="space-y-6 text-left animate-slide-up pb-24">
+        {/* Large Profile Header */}
+        <div className="bg-gradient-to-br from-[#FAFBFC] to-[#F1F3F5] dark:from-charcoal-850 dark:to-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-6 shadow-chosen-lg text-left relative overflow-hidden flex flex-col items-center text-center space-y-4">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/10 dark:bg-white/5 rounded-full blur-xl pointer-events-none" />
+          <div className="relative">
+            <div className="h-20 w-20 rounded-full bg-[#E6E6E6] dark:bg-charcoal-800 border-4 border-white dark:border-charcoal-700 shadow-chosen-md flex items-center justify-center font-bold text-2xl text-[#0D0C18] dark:text-white uppercase select-none overflow-hidden">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                <span>{getPatientInitials()}</span>
+              )}
+            </div>
+            <button 
+              onClick={() => setShowEditProfileModal(true)}
+              className="absolute bottom-0 right-0 p-1.5 bg-[#A27B41] text-white rounded-full border border-white dark:border-charcoal-800 shadow-chosen-sm hover:scale-105 active:scale-95 transition-all"
+            >
+              <Settings className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="font-display font-bold text-lg text-[#0D0C18] dark:text-white leading-tight">
+              {editableFirstName ? `${editableFirstName} ${editableLastName}` : `${profile?.firstName} ${profile?.lastName}`}
+            </h3>
+            <div className="flex items-center justify-center gap-2 text-2xs text-[#9F9F9F] font-semibold">
+              <span>Patient ID: {getPatientId()}</span>
+              <span>·</span>
+              <span className="text-green-500 dark:text-green-400 font-bold uppercase">Active</span>
+            </div>
+            <span className="text-[10px] text-chosen-text-muted block mt-1">Member since June 2026</span>
+          </div>
+
+          {clinicalProfile?.assigned_admin?.user ? (
+            <div className="border-t border-[#E5E5E5] dark:border-charcoal-800/80 w-full pt-3.5 text-2xs text-chosen-text-secondary flex flex-col items-center">
+              <span className="text-[9px] uppercase font-bold text-chosen-text-muted tracking-wider">Assigned Practitioner</span>
+              <span className="font-bold text-[#0D0C18] dark:text-white mt-0.5">
+                Dr. {clinicalProfile.assigned_admin.user.first_name} {clinicalProfile.assigned_admin.user.last_name}
+              </span>
+              <span className="text-chosen-text-muted text-[10px]">{clinicalProfile.assigned_admin.clinic_name || 'Chelsea Clinic'}</span>
+            </div>
+          ) : (
+            <div className="border-t border-[#E5E5E5] dark:border-charcoal-800/80 w-full pt-3.5 text-2xs text-amber-600 font-medium">
+              No clinician assigned yet.
+            </div>
+          )}
         </div>
-        <div className="space-y-1">
-          <h3 className="font-display font-bold text-lg text-[#0D0C18] dark:text-white leading-tight">
-            {profile?.firstName ? `${profile.firstName} ${profile.lastName}` : profile?.email}
-          </h3>
-          <span className="text-xs text-[#9F9F9F] font-bold block">
-            Patient since 04 Jun
-          </span>
+
+        {/* Quick Actions Panel */}
+        <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm">
+          <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Quick Navigation</h3>
+          <div className="grid grid-cols-2 gap-2.5 select-none">
+            <button 
+              onClick={() => { setMobileTab('exercises'); setSelectedAssignment(null); }}
+              className="flex items-center gap-2 p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg text-2xs font-semibold text-left text-chosen-text-secondary hover:border-gold-500/35 transition-all"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-[#A27B41]" /> My Plan
+            </button>
+            <button 
+              onClick={() => {
+                if (assignments.length > 0) {
+                  navigate('/tracker', { state: { exerciseName: assignments[0].exercise?.name, rules: assignments[0].exercise?.rules } });
+                } else {
+                  navigate('/tracker');
+                }
+              }}
+              className="flex items-center gap-2 p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg text-2xs font-semibold text-left text-chosen-text-secondary hover:border-gold-500/35 transition-all"
+            >
+              <Play className="h-4 w-4 text-[#A27B41]" /> Start Workout
+            </button>
+            <button 
+              onClick={() => setMobileTab('appointments')}
+              className="flex items-center gap-2 p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg text-2xs font-semibold text-left text-chosen-text-secondary hover:border-gold-500/35 transition-all"
+            >
+              <Calendar className="h-4 w-4 text-[#A27B41]" /> Appointments
+            </button>
+            <button 
+              onClick={() => alert('Secure message portal opening...')}
+              className="flex items-center gap-2 p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg text-2xs font-semibold text-left text-chosen-text-secondary hover:border-gold-500/35 transition-all"
+            >
+              <MessageSquare className="h-4 w-4 text-[#A27B41]" /> Message PT
+            </button>
+          </div>
+        </div>
+
+        {/* Settings List */}
+        <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-4 space-y-2 shadow-chosen-sm">
+          <button onClick={() => setShowEditProfileModal(true)} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <User className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Personal Information</span>
+                <span className="text-2xs text-chosen-text-muted block">Edit name, email, and phone contact details</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => setShowChangePasswordModal(true)} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <Settings className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Account Settings</span>
+                <span className="text-2xs text-chosen-text-muted block">Change account passwords and language</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => setShowNotificationSettingsModal(true)} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <Bell className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Notification Preferences</span>
+                <span className="text-2xs text-chosen-text-muted block">Set reminders and daily workout notifications</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => setShowPrivacySettingsModal(true)} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <ShieldCheck className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Privacy & Security</span>
+                <span className="text-2xs text-chosen-text-muted block">Manage HIPAA sharing settings and telemetry data</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => setMobileTab('progress')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <History className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Motion Recordings</span>
+                <span className="text-2xs text-chosen-text-muted block">{sessions.length} sessions logged · View logs & graphs</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => alert('Support ticket loaded...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <Info className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">Help & Support</span>
+                <span className="text-2xs text-chosen-text-muted block">Browse FAQS or reach clinic support desk</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <button onClick={() => alert('Chosen Life platform, Version 1.2.0')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <Activity className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-[#212121] dark:text-white block">About Chosen Life</span>
+                <span className="text-2xs text-chosen-text-muted block">Regulatory compliance, HIPAA info & terms</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
+          <div className="border-t border-[#E5E5E5] dark:border-charcoal-800/80 my-2" />
+
+          <button onClick={() => setShowLogoutConfirm(true)} className="w-full flex items-center justify-between p-3 hover:bg-red-500/5 dark:hover:bg-red-955/10 rounded-chosen-md transition-all group text-left">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2 bg-red-500/10 text-red-500 rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
+                <LogOut className="h-4.5 w-4.5" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="font-semibold text-sm text-red-500 block">Logout</span>
+                <span className="text-2xs text-red-500/75 block">Sign out of patient portal session</span>
+              </div>
+            </div>
+            <ChevronRight className="h-4.5 w-4.5 text-red-500 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         </div>
       </div>
+    );
+  };
 
-      <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-4 space-y-2 shadow-chosen-sm">
-        {/* Profile Menu Items */}
-        <button onClick={() => alert('Personal Information settings opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <User className="h-4.5 w-4.5" />
+  const renderProfileTablet = () => {
+    return (
+      <div className="space-y-6 text-left animate-fade-in py-4">
+        {/* Tablet Title */}
+        <div className="pb-4 border-b border-[#E5E5E5] dark:border-charcoal-800 mb-2">
+          <h1 className="text-xl font-display font-bold text-[#0D0C18] dark:text-white">Profile Dashboard</h1>
+          <p className="text-xs text-chosen-text-muted">Manage settings and motion analysis records.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 items-start">
+          {/* Column 1 - Profile Card & Quick Actions */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 shadow-chosen-sm text-center">
+              <div className="flex flex-col items-center space-y-3.5">
+                <div className="h-20 w-20 rounded-full bg-[#E6E6E6] dark:bg-charcoal-800 border-4 border-white dark:border-charcoal-700 shadow-chosen-md flex items-center justify-center font-bold text-2xl text-[#0D0C18] dark:text-white uppercase select-none overflow-hidden">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{getPatientInitials()}</span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white">
+                    {editableFirstName ? `${editableFirstName} ${editableLastName}` : `${profile?.firstName} ${profile?.lastName}`}
+                  </h3>
+                  <span className="text-[10px] text-chosen-text-muted block">ID: {getPatientId()} · Active</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="text-2xs py-1.5 h-8 font-semibold w-full"
+                  onClick={() => setShowEditProfileModal(true)}
+                  leftIcon={<Settings className="h-3.5 w-3.5" />}
+                >
+                  Edit Profile Details
+                </Button>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">Personal Information</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Manage your name, date of birth, and email</span>
+
+            <div className="bg-white dark:bg-charcoal-850 border border-chosen rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted text-left">Quick Navigation</h3>
+              <div className="grid grid-cols-1 gap-2 text-xs select-none">
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => { setMobileTab('exercises'); setSelectedAssignment(null); }}
+                  leftIcon={<FileSpreadsheet className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  My Plan
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => setMobileTab('appointments')}
+                  leftIcon={<Calendar className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  Appointments Schedule
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-red-500/10 text-red-500 border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  leftIcon={<LogOut className="h-4 w-4 text-red-500" />}
+                >
+                  Sign Out Portal
+                </Button>
+              </div>
             </div>
           </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
 
-        <button onClick={() => alert('Account Settings opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <Settings className="h-4.5 w-4.5" />
+          {/* Column 2 - Settings and Motion History */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm text-left">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Account Settings</h3>
+              <div className="space-y-3.5 text-xs">
+                <button onClick={() => setShowEditProfileModal(true)} className="w-full flex justify-between items-center py-1 hover:text-[#A27B41] transition-all">
+                  <span className="font-semibold">Edit Contact Info</span>
+                  <ChevronRight className="h-4 w-4 text-chosen-text-muted" />
+                </button>
+                <button onClick={() => setShowChangePasswordModal(true)} className="w-full flex justify-between items-center py-1 hover:text-[#A27B41] transition-all">
+                  <span className="font-semibold">Change password security</span>
+                  <ChevronRight className="h-4 w-4 text-chosen-text-muted" />
+                </button>
+                <button onClick={() => setShowNotificationSettingsModal(true)} className="w-full flex justify-between items-center py-1 hover:text-[#A27B41] transition-all">
+                  <span className="font-semibold">Notification preferences</span>
+                  <ChevronRight className="h-4 w-4 text-chosen-text-muted" />
+                </button>
+                <button onClick={() => setShowPrivacySettingsModal(true)} className="w-full flex justify-between items-center py-1 hover:text-[#A27B41] transition-all">
+                  <span className="font-semibold">HIPAA sharing bounds</span>
+                  <ChevronRight className="h-4 w-4 text-chosen-text-muted" />
+                </button>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">Account Settings</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Update passwords and linked clinic credentials</span>
+
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm text-left">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Motion History</h3>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between items-center bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 p-3 rounded-chosen-md">
+                  <span className="text-chosen-text-muted font-medium">Sessions Logged</span>
+                  <span className="font-bold text-[#0D0C18] dark:text-white">{sessions.length}</span>
+                </div>
+                <div className="flex justify-between items-center bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 p-3 rounded-chosen-md">
+                  <span className="text-chosen-text-muted font-medium">Exercises Mastered</span>
+                  <span className="font-bold text-[#0D0C18] dark:text-white">{uniqueExercisesCount}</span>
+                </div>
+                <Button
+                  variant="secondary"
+                  className="w-full text-2xs py-2 mt-1.5"
+                  onClick={() => setMobileTab('progress')}
+                >
+                  View Graphs & Logs
+                </Button>
+              </div>
             </div>
           </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        <button onClick={() => alert('Notification Preferences opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <Bell className="h-4.5 w-4.5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">Notification Preferences</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Configure workout reminders and updates</span>
-            </div>
-          </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        <button onClick={() => alert('Privacy & Security opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <ShieldCheck className="h-4.5 w-4.5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">Privacy & Security</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Manage clinic data consent and HIPAA rules</span>
-            </div>
-          </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        <button onClick={() => alert('Help & Support opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <Info className="h-4.5 w-4.5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">Help & Support</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Contact your clinic or read instructions</span>
-            </div>
-          </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        <button onClick={() => alert('About Chosen Life opening...')} className="w-full flex items-center justify-between p-3 hover:bg-[#F5F5F5] dark:hover:bg-charcoal-800 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 text-[#A27B41] rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <Activity className="h-4.5 w-4.5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-[#212121] dark:text-white block">About Chosen Life</span>
-              <span className="text-xs text-[#626262] dark:text-chosen-text-muted block">Version 1.2.0 · Platform Terms & Rules</span>
-            </div>
-          </div>
-          <ChevronRight className="h-4.5 w-4.5 text-[#525252] dark:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-        </button>
-
-        <div className="border-t border-[#E5E5E5] dark:border-charcoal-800/80 my-2" />
-
-        <button onClick={signOut} className="w-full flex items-center justify-between p-3 hover:bg-red-500/5 dark:hover:bg-red-950/10 rounded-chosen-md transition-all group text-left">
-          <div className="flex items-center gap-3.5">
-            <div className="p-2 bg-red-500/10 text-red-500 rounded-chosen-md shrink-0 flex items-center justify-center w-9 h-9">
-              <LogOut className="h-4.5 w-4.5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-sm text-red-500 block">Logout</span>
-              <span className="text-xs text-red-500/70 block font-normal">Sign out of your active rehabilitation portal session</span>
-            </div>
-          </div>
-          <ChevronRight className="h-4.5 w-4.5 text-red-500 group-hover:translate-x-0.5 transition-transform" />
-        </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderProfileDesktop = () => {
+    const recent = getRecentSessions();
+    const lastSession = sessions[0];
+    const lastSessionDate = lastSession 
+      ? new Date(lastSession.completed_at || lastSession.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+      : 'No sessions yet';
+
+    return (
+      <div className="space-y-6 text-left animate-fade-in max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Desktop Header */}
+        <div className="flex justify-between items-center border-b border-[#E5E5E5] dark:border-charcoal-800 pb-4 mb-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-display font-bold text-[#0D0C18] dark:text-white">Patient Profile Dashboard</h1>
+            <p className="text-xs text-chosen-text-muted">Manage personal settings, security authorizations, notifications, and review active recovery motion tracking history.</p>
+          </div>
+          <button 
+            onClick={() => setShowLogoutConfirm(true)}
+            className="flex items-center gap-2 px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-955/10 rounded-chosen-md text-red-500 border border-red-200 dark:border-red-900/20 text-xs font-semibold shadow-chosen-sm transition-all active:scale-95"
+            title="Log out"
+          >
+            <LogOut className="h-4 w-4" /> Sign Out Portal
+          </button>
+        </div>
+
+        <div className="grid grid-cols-12 gap-8 items-start">
+          {/* Left Column (col-span-3) - Profile Card & Quick Actions */}
+          <div className="col-span-12 lg:col-span-3 space-y-6">
+            {/* Profile Card */}
+            <div className="bg-[#FAFBFC] dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 shadow-chosen-sm text-center relative overflow-hidden flex flex-col items-center space-y-4">
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-[#A27B41]/5 rounded-full blur-xl pointer-events-none" />
+              <div className="relative">
+                <div className="h-24 w-24 rounded-full bg-[#E6E6E6] dark:bg-charcoal-800 border-4 border-white dark:border-charcoal-700 shadow-chosen-md flex items-center justify-center font-bold text-3xl text-slate-800 dark:text-white uppercase select-none overflow-hidden">
+                  {profilePhoto ? (
+                    <img src={profilePhoto} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{getPatientInitials()}</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white">
+                  {editableFirstName ? `${editableFirstName} ${editableLastName}` : `${profile?.firstName} ${profile?.lastName}`}
+                </h3>
+                <span className="text-[10px] text-chosen-text-muted block">Patient ID: {getPatientId()}</span>
+                <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-green-500/25 bg-green-500/10 text-green-500 dark:text-green-455">
+                  Active Member
+                </span>
+              </div>
+
+              {clinicalProfile?.assigned_admin?.user && (
+                <div className="border-t border-[#E5E5E5] dark:border-charcoal-800/80 w-full pt-3.5 text-2xs text-left space-y-1">
+                  <span className="text-[9px] uppercase font-bold text-chosen-text-muted tracking-wider block">Assigned Practitioner</span>
+                  <span className="font-bold text-[#0D0C18] dark:text-white block">
+                    Dr. {clinicalProfile.assigned_admin.user.first_name} {clinicalProfile.assigned_admin.user.last_name}
+                  </span>
+                  <span className="text-chosen-text-muted text-[10px] block">{clinicalProfile.assigned_admin.clinic_name || 'Chelsea Clinic'}</span>
+                </div>
+              )}
+
+              <Button
+                variant="primary"
+                className="w-full text-2xs py-2 btn-accent font-semibold"
+                onClick={() => setShowEditProfileModal(true)}
+                leftIcon={<User className="h-3.5 w-3.5 fill-current" />}
+              >
+                Edit Profile Details
+              </Button>
+            </div>
+
+            {/* Quick Actions Card */}
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Quick Actions</h3>
+              <div className="flex flex-col gap-2.5 text-xs select-none">
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => { setMobileTab('exercises'); setSelectedAssignment(null); }}
+                  leftIcon={<FileSpreadsheet className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  View My Plan
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => {
+                    if (assignments.length > 0) {
+                      navigate('/tracker', { state: { exerciseName: assignments[0].exercise?.name, rules: assignments[0].exercise?.rules } });
+                    } else {
+                      navigate('/tracker');
+                    }
+                  }}
+                  leftIcon={<Play className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  Start Today's Exercise
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => setMobileTab('appointments')}
+                  leftIcon={<Calendar className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  Schedule Appointments
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-2xs py-2 bg-slate-500/5 hover:bg-slate-500/10 text-chosen-text-secondary border-chosen flex items-center justify-start gap-2 h-9 font-semibold"
+                  onClick={() => alert('Opening consultation secure portal...')}
+                  leftIcon={<MessageSquare className="h-4 w-4 text-[#A27B41]" />}
+                >
+                  Contact Practitioner
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Center Column (col-span-5) - Personal Info & Preferences */}
+          <div className="col-span-12 lg:col-span-5 space-y-6">
+            {/* Personal Info Box */}
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm text-left">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Personal Information</h3>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg">
+                  <span className="text-[9px] text-chosen-text-muted uppercase font-bold block">First Name</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{editableFirstName || profile?.firstName}</span>
+                </div>
+                <div className="p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg">
+                  <span className="text-[9px] text-chosen-text-muted uppercase font-bold block">Last Name</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{editableLastName || profile?.lastName}</span>
+                </div>
+                <div className="p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg col-span-2">
+                  <span className="text-[9px] text-chosen-text-muted uppercase font-bold block">Email Address</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{editableEmail || profile?.email}</span>
+                </div>
+                <div className="p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg">
+                  <span className="text-[9px] text-chosen-text-muted uppercase font-bold block">Phone Contact</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">{editablePhone || '+1 (555) 019-2831'}</span>
+                </div>
+                <div className="p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg">
+                  <span className="text-[9px] text-chosen-text-muted uppercase font-bold block">Registered Since</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">04 Jun 2026</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Account Settings Preferences */}
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm text-left">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Account Settings</h3>
+              <div className="space-y-4 text-xs">
+                <div className="flex items-center justify-between py-2 border-b border-[#F5F5F5] dark:border-charcoal-800/80">
+                  <div className="space-y-0.5">
+                    <span className="font-semibold block text-[#0D0C18] dark:text-white">Security Credentials</span>
+                    <span className="text-[10px] text-chosen-text-muted block">Keep your portal access password updated</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="text-2xs py-1 px-3 h-8"
+                    onClick={() => setShowChangePasswordModal(true)}
+                  >
+                    Change Password
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between py-2 border-b border-[#F5F5F5] dark:border-charcoal-800/80">
+                  <div className="space-y-0.5">
+                    <span className="font-semibold block text-[#0D0C18] dark:text-white">Alert Deliveries</span>
+                    <span className="text-[10px] text-chosen-text-muted block">Configure SMS, email and push notifications</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="text-2xs py-1 px-3 h-8"
+                    onClick={() => setShowNotificationSettingsModal(true)}
+                  >
+                    Modify Channels
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-1">
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] text-chosen-text-muted uppercase font-bold tracking-wider block">Language Preference</span>
+                    <select
+                      value={languagePreference}
+                      onChange={e => setLanguagePreference(e.target.value as any)}
+                      className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:ring-1 focus:ring-gold-500 focus:outline-none"
+                    >
+                      <option value="english">English (US)</option>
+                      <option value="spanish">Español (ES)</option>
+                      <option value="french">Français (FR)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] text-chosen-text-muted uppercase font-bold tracking-wider block">Application Theme</span>
+                    <select
+                      value={themePreference}
+                      onChange={e => {
+                        const val = e.target.value as any;
+                        setThemePreference(val);
+                        if (val === 'dark') {
+                          document.documentElement.classList.add('dark');
+                        } else if (val === 'light') {
+                          document.documentElement.classList.remove('dark');
+                        } else {
+                          // system default
+                          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                          if (isDark) document.documentElement.classList.add('dark');
+                          else document.documentElement.classList.remove('dark');
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:ring-1 focus:ring-gold-500 focus:outline-none"
+                    >
+                      <option value="system">System Preference</option>
+                      <option value="light">Light Mode</option>
+                      <option value="dark">Dark Mode</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy & HIPAA */}
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-4 shadow-chosen-sm text-left">
+              <div className="flex justify-between items-center pb-2 border-b border-[#F5F5F5] dark:border-charcoal-800/80">
+                <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Privacy & HIPAA Security</h3>
+                <span className="text-[8px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/10">HIPAA Protected</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <div className="space-y-0.5">
+                  <span className="font-semibold block text-[#0D0C18] dark:text-white">Medical Consent Preferences</span>
+                  <span className="text-[10px] text-chosen-text-muted block">Manage clinic data sharing parameters</span>
+                </div>
+                <Button
+                  variant="outline"
+                  className="text-2xs py-1 px-3 h-8"
+                  onClick={() => setShowPrivacySettingsModal(true)}
+                >
+                  Configure Privacy
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (col-span-4) - Motion History Summary */}
+          <div className="col-span-12 lg:col-span-4 space-y-6">
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-5 shadow-chosen-sm text-left">
+              <div className="flex justify-between items-center border-b border-[#F5F5F5] dark:border-charcoal-800/80 pb-3">
+                <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted flex items-center gap-1.5">
+                  <History className="h-4.5 w-4.5" /> Recovery Motion Summary
+                </h3>
+                <button 
+                  onClick={() => setMobileTab('progress')}
+                  className="text-2xs font-bold text-[#A27B41] hover:underline"
+                >
+                  View Details
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center select-none font-semibold">
+                <div className="bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg p-3">
+                  <span className="text-[8px] text-chosen-text-muted block uppercase mb-1">Sessions Done</span>
+                  <span className="font-bold text-[#0D0C18] dark:text-white text-base block">{sessions.length}</span>
+                </div>
+                <div className="bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg p-3">
+                  <span className="text-[8px] text-chosen-text-muted block uppercase mb-1">Exercises Done</span>
+                  <span className="font-bold text-[#0D0C18] dark:text-white text-base block">{uniqueExercisesCount}</span>
+                </div>
+                <div className="bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-lg p-3">
+                  <span className="text-[8px] text-chosen-text-muted block uppercase mb-1">Avg Accuracy</span>
+                  <span className="font-bold text-emerald-500 text-base block">{avgAccuracy}%</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-500/5 border border-chosen rounded-chosen-xl text-2xs space-y-1">
+                <span className="text-[8px] text-[#A27B41] uppercase tracking-widest font-bold block">Last Session Conducted</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 block">{lastSessionDate}</span>
+              </div>
+
+              {/* Recent Practice Logs */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] text-chosen-text-muted font-bold uppercase tracking-wider">Recent practice records</h4>
+                {recent.length === 0 ? (
+                  <p className="text-2xs text-chosen-text-muted text-center py-4 bg-[#FAFBFC] dark:bg-charcoal-900 rounded-chosen-xl border border-chosen">No recordings logged. Start workout!</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {recent.map(s => (
+                      <div key={s.id} className="flex justify-between items-center p-3 bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800/80 rounded-chosen-xl text-xs hover:border-gold-500/35 transition-all">
+                        <div className="text-left space-y-0.5 min-w-0">
+                          <span className="font-bold block truncate max-w-[140px] text-slate-800 dark:text-slate-200">{s.title || 'Workout'}</span>
+                          <span className="text-[9px] text-chosen-text-muted block font-mono">
+                            {new Date(s.completed_at || s.created_at).toLocaleDateString()} · {s.duration_seconds || 0}s
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <span className="font-bold text-[#A27B41] block">{s.avg_score || s.score || 0}% Form</span>
+                            <span className="text-[9px] text-chosen-text-muted block font-mono font-semibold">{Math.round(s.range_of_motion || 0)}° ROM</span>
+                          </div>
+                          <button
+                            onClick={() => navigate(`/patient/session/${s.id}`)}
+                            className="p-1 bg-[#F5F5F5] dark:bg-charcoal-800 hover:bg-gold-500/10 hover:text-[#A27B41] rounded-chosen-sm text-chosen-text-secondary transition-all"
+                            title="Replay video coordinates"
+                          >
+                            <PlayCircle className="h-4.5 w-4.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Clinic Support Card */}
+            <div className="bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-xl p-5 space-y-3.5 shadow-chosen-sm text-left">
+              <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-muted">Platform Support</h3>
+              <div className="flex gap-3 text-xs bg-[#FAFBFC] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 p-3.5 rounded-chosen-xl items-center">
+                <Info className="h-5 w-5 text-[#A27B41] shrink-0" />
+                <div className="space-y-0.5">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block">Chosen Life Helper</span>
+                  <span className="text-[10px] text-chosen-text-secondary block">Need troubleshooting? Reach our HIPAA care center.</span>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                className="w-full text-2xs py-2"
+                onClick={() => alert('Support tickets can be submitted by email at support@chosenlife.com')}
+              >
+                Request Help Ticket
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProfileModals = () => {
+    return (
+      <>
+        {/* Logout Confirmation Dialog */}
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in select-none">
+            <div className="bg-white dark:bg-[#121122] border border-[#E5E5E5] dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-6 text-center shadow-2xl">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="h-12 w-12 bg-red-100 dark:bg-red-955/20 text-red-500 rounded-full flex items-center justify-center border border-red-200 dark:border-red-900/30">
+                  <LogOut className="h-6 w-6" />
+                </div>
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white">
+                  Sign Out Confirmation
+                </h3>
+                <p className="text-xs text-chosen-text-secondary leading-relaxed">
+                  Are you sure you want to sign out of your Chosen Life active patient dashboard?
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="secondary"
+                  className="flex-1 text-2xs py-2 border-none"
+                  onClick={() => setShowLogoutConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  className="flex-1 text-2xs py-2 bg-red-500 hover:bg-red-650 border-none text-white font-semibold"
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    signOut();
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Profile Modal */}
+        {showEditProfileModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in select-none">
+            <div className="bg-white dark:bg-[#121122] border border-[#E5E5E5] dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl">
+              <div className="flex justify-between items-center border-b border-[#E5E5E5] dark:border-charcoal-800 pb-3">
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white flex items-center gap-2">
+                  <User className="h-4.5 w-4.5 text-[#A27B41]" />
+                  Edit Profile Details
+                </h3>
+                <button 
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="p-1 hover:bg-[#F5F5F5] dark:hover:bg-slate-800 rounded-lg text-chosen-text-muted transition-all"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={(e) => { e.preventDefault(); setShowEditProfileModal(false); }} className="space-y-4 text-xs">
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">First Name</label>
+                  <input 
+                     type="text"
+                     value={editableFirstName}
+                     onChange={e => setEditableFirstName(e.target.value)}
+                     className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Last Name</label>
+                  <input 
+                     type="text"
+                     value={editableLastName}
+                     onChange={e => setEditableLastName(e.target.value)}
+                     className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Email Address</label>
+                  <input 
+                     type="email"
+                     value={editableEmail}
+                     onChange={e => setEditableEmail(e.target.value)}
+                     className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Phone Number</label>
+                  <input 
+                     type="text"
+                     value={editablePhone}
+                     onChange={e => setEditablePhone(e.target.value)}
+                     className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Upload Profile Photo (URL)</label>
+                  <input 
+                     type="text"
+                     placeholder="https://example.com/avatar.jpg"
+                     value={profilePhoto || ''}
+                     onChange={e => setProfilePhoto(e.target.value || null)}
+                     className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="secondary"
+                    className="flex-1 text-2xs py-2 border-none"
+                    onClick={() => setShowEditProfileModal(false)}
+                    type="button"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-1 text-2xs py-2 btn-accent"
+                    type="submit"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Change Password Modal */}
+        {showChangePasswordModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in select-none">
+            <div className="bg-white dark:bg-[#121122] border border-[#E5E5E5] dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl">
+              <div className="flex justify-between items-center border-b border-[#E5E5E5] dark:border-charcoal-800 pb-3">
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white flex items-center gap-2">
+                  <Settings className="h-4.5 w-4.5 text-[#A27B41]" />
+                  Change Password
+                </h3>
+                <button 
+                  onClick={() => setShowChangePasswordModal(false)}
+                  className="p-1 hover:bg-[#F5F5F5] dark:hover:bg-slate-800 rounded-lg text-chosen-text-muted transition-all"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={(e) => { e.preventDefault(); alert('Password updated successfully (simulated).'); setShowChangePasswordModal(false); }} className="space-y-4 text-xs">
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Current Password</label>
+                  <input 
+                    type="password"
+                    required
+                    className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">New Password</label>
+                  <input 
+                    type="password"
+                    required
+                    className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider block mb-1">Confirm New Password</label>
+                  <input 
+                    type="password"
+                    required
+                    className="w-full px-3 py-2 bg-[#F5F5F5] dark:bg-charcoal-900 border border-[#E5E5E5] dark:border-charcoal-800 rounded-chosen-md text-chosen-text-primary text-xs focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="secondary"
+                    className="flex-1 text-2xs py-2 border-none"
+                    onClick={() => setShowChangePasswordModal(false)}
+                    type="button"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    className="flex-1 text-2xs py-2 btn-accent"
+                    type="submit"
+                  >
+                    Update Password
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Settings Modal */}
+        {showNotificationSettingsModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in select-none">
+            <div className="bg-white dark:bg-[#121122] border border-[#E5E5E5] dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl">
+              <div className="flex justify-between items-center border-b border-[#E5E5E5] dark:border-charcoal-800 pb-3">
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white flex items-center gap-2">
+                  <Bell className="h-4.5 w-4.5 text-[#A27B41]" />
+                  Notification Channels
+                </h3>
+                <button 
+                  onClick={() => setShowNotificationSettingsModal(false)}
+                  className="p-1 hover:bg-[#F5F5F5] dark:hover:bg-slate-800 rounded-lg text-chosen-text-muted transition-all"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <div className="flex items-center justify-between p-1">
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">Email Alerts</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">Receive bi-weekly progress reports</span>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] focus:ring-gold-500 cursor-pointer" />
+                </div>
+                <div className="flex items-center justify-between p-1">
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">SMS Reminders</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">Get texted 30 minutes before exercises</span>
+                  </div>
+                  <input type="checkbox" defaultChecked className="h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] focus:ring-gold-500 cursor-pointer" />
+                </div>
+                <div className="flex items-center justify-between p-1">
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">Push Notifications</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">In-app popups during practitioner messages</span>
+                  </div>
+                  <input type="checkbox" className="h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] focus:ring-gold-500 cursor-pointer" />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  variant="primary"
+                  className="w-full text-2xs py-2 btn-accent font-semibold"
+                  onClick={() => setShowNotificationSettingsModal(false)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Privacy Settings Modal */}
+        {showPrivacySettingsModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in select-none">
+            <div className="bg-white dark:bg-[#121122] border border-[#E5E5E5] dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl">
+              <div className="flex justify-between items-center border-b border-[#E5E5E5] dark:border-charcoal-800 pb-3">
+                <h3 className="font-display font-bold text-sm text-[#0D0C18] dark:text-white flex items-center gap-2">
+                  <ShieldCheck className="h-4.5 w-4.5 text-[#A27B41]" />
+                  Privacy & HIPAA Compliance
+                </h3>
+                <button 
+                  onClick={() => setShowPrivacySettingsModal(false)}
+                  className="p-1 hover:bg-[#F5F5F5] dark:hover:bg-slate-800 rounded-lg text-chosen-text-muted transition-all"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <div className="flex items-start gap-3 p-1">
+                  <input type="checkbox" defaultChecked className="mt-1 h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] cursor-pointer" />
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">Share skeleton coordinates with clinic</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">Allows practitioner to review joint range-of-motion metrics</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-1">
+                  <input type="checkbox" defaultChecked className="mt-1 h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] cursor-pointer" />
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">Strict HIPAA protection rules</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">Encrypts all data transmission and restricts metadata visibility</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-1">
+                  <input type="checkbox" className="mt-1 h-4 w-4 rounded-md border-[#E5E5E5] text-[#A27B41] cursor-pointer" />
+                  <div>
+                    <span className="font-semibold text-xs text-chosen-text-primary block">Anonymized telemetry uploads</span>
+                    <span className="text-[10px] text-chosen-text-muted block mt-0.5">Strip name identifier from mathematical pose estimations</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  variant="primary"
+                  className="w-full text-2xs py-2 btn-accent font-semibold"
+                  onClick={() => setShowPrivacySettingsModal(false)}
+                >
+                  Dismiss Settings
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
 
   const bottomNavigation = (
     <div className="fixed bottom-3 left-4 right-4 h-16 bg-[#0D0C18] border border-white/5 px-4 flex justify-between items-center z-30 shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-[12px]">
@@ -2677,21 +3565,31 @@ const PatientDashboard: React.FC = () => {
       <ContentWrapper>
         <div className="hidden lg:block">
           {mobileTab === 'overview' && (
-            <div className="grid grid-cols-3 gap-8 text-left items-start animate-fade-in">
-              <div className="space-y-8">
-                {greetingHeader}
-                {todaysWorkoutCard}
-                {quickStartCard}
+            <div className="space-y-8 text-left animate-fade-in max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-6">
+                  {greetingHeader}
+                  {clinicalProfileBanner}
+                </div>
+                <div>
+                  {nextAppointmentCard}
+                </div>
               </div>
-              <div className="space-y-8">
-                {nextAppointmentCard}
-                {clinicalProfileBanner}
-                {upcomingSchedule}
-              </div>
-              <div className="space-y-8">
-                {statsRow}
-                {progressAnalytics}
-                {quickActionsCard}
+
+              {statsRow}
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="space-y-8">
+                  {todaysWorkoutCard}
+                  {quickStartCard}
+                </div>
+                <div className="space-y-8">
+                  {upcomingSchedule}
+                  {quickActionsCard}
+                </div>
+                <div className="space-y-8">
+                  {progressAnalytics}
+                </div>
               </div>
             </div>
           )}
@@ -2798,14 +3696,17 @@ const PatientDashboard: React.FC = () => {
           )}
 
           {mobileTab === 'progress' && (
-            <div className="grid grid-cols-3 gap-8 text-left items-start animate-fade-in">
-              <div className="col-span-2 space-y-8">{progressAnalytics}</div>
-              <div className="space-y-8">{statsRow}{practiceLogsHistory}</div>
+            <div className="space-y-8 text-left animate-fade-in max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              {statsRow}
+              <div className="grid grid-cols-3 gap-8 text-left items-start">
+                <div className="col-span-2 space-y-8">{progressAnalytics}</div>
+                <div className="space-y-8">{practiceLogsHistory}</div>
+              </div>
             </div>
           )}
 
           {mobileTab === 'appointments' && renderAppointmentsDesktop()}
-          {mobileTab === 'profile' && <div className="max-w-2xl mx-auto">{mobileProfileTab}</div>}
+          {mobileTab === 'profile' && renderProfileDesktop()}
         </div>
 
         <div className="hidden md:block lg:hidden text-left">
@@ -2813,8 +3714,11 @@ const PatientDashboard: React.FC = () => {
             <div className="space-y-8 animate-fade-in">
               {greetingHeader}
               {clinicalProfileBanner}
+              
+              {statsRow}
+
               <div className="grid grid-cols-2 gap-8 items-start">
-                <div className="space-y-8">{todaysWorkoutCard}{statsRow}{quickStartCard}</div>
+                <div className="space-y-8">{todaysWorkoutCard}{quickStartCard}</div>
                 <div className="space-y-8">{nextAppointmentCard}{progressAnalytics}{upcomingSchedule}{practiceLogsHistory}</div>
               </div>
             </div>
@@ -2858,16 +3762,16 @@ const PatientDashboard: React.FC = () => {
           )}
 
           {mobileTab === 'progress' && (
-            <div className="grid grid-cols-2 gap-8 items-start animate-fade-in">
-              <div>{progressAnalytics}</div>
-              <div className="space-y-8">
-                {statsRow}
-                {practiceLogsHistory}
+            <div className="space-y-8 text-left animate-fade-in">
+              {statsRow}
+              <div className="grid grid-cols-2 gap-8 items-start">
+                <div>{progressAnalytics}</div>
+                <div className="space-y-8">{practiceLogsHistory}</div>
               </div>
             </div>
           )}
           {mobileTab === 'appointments' && renderAppointmentsTablet()}
-          {mobileTab === 'profile' && <div className="max-w-2xl mx-auto">{mobileProfileTab}</div>}
+          {mobileTab === 'profile' && renderProfileTablet()}
         </div>
 
         <div className="block md:hidden space-y-6">
@@ -2896,10 +3800,11 @@ const PatientDashboard: React.FC = () => {
             </div>
           )}
           {mobileTab === 'appointments' && renderAppointmentsMobile()}
-          {mobileTab === 'profile' && mobileProfileTab}
+          {mobileTab === 'profile' && renderProfileMobile()}
         </div>
       </ContentWrapper>
       {renderRescheduleModal()}
+      {renderProfileModals()}
     </PageContainer>
   );
 };
