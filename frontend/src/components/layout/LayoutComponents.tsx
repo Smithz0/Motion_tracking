@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Menu, X, Bell, User, Loader2, LogOut, 
   AlertCircle, CheckCircle2, Info, XCircle, ChevronRight
@@ -531,7 +532,7 @@ export const Modal: React.FC<ModalProps> = ({
     lg: "max-w-3xl",
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
@@ -567,7 +568,8 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

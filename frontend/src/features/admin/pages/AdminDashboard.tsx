@@ -25,7 +25,6 @@ import type {
   PatientListItem,
 } from '@/types/api';
 import {
-  exerciseJointTags,
   patientApiId,
   sessionFormScore,
   sessionRom,
@@ -58,18 +57,19 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea, Select, Checkbox, Toggle } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Card, StatisticCard, ExerciseCard, AnalyticsCard } from '@/components/ui/Card';
+import { Card, StatisticCard } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Status';
 import { 
   PageContainer, 
   Header, 
   Sidebar, 
   ContentWrapper, 
-  ResponsiveGrid, 
   Modal, 
   LoadingState,
   cn 
 } from '@/components/layout/LayoutComponents';
+import { ExerciseLibrary } from '../components/ExerciseLibrary';
+import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 
 import {
   ResponsiveContainer,
@@ -247,7 +247,7 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'reports') {
+    if (activeTab === 'reports' || activeTab === 'analytics') {
       loadMotionReports();
     }
   }, [activeTab]);
@@ -2123,68 +2123,52 @@ const AdminDashboard: React.FC = () => {
                 TAB: EXERCISES
                 ========================================== */}
             {activeTab === 'exercises' && (
-              <div className="space-y-6 animate-slide-up text-left">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display font-bold text-base md:text-lg text-chosen-text-primary">Active Exercises Catalog</h3>
-                  <Button
-                    onClick={() => setCreateExModalOpen(true)}
-                    leftIcon={<Plus className="h-4 w-4" />}
-                  >
-                    Create Exercise
-                  </Button>
-                </div>
+              <ExerciseLibrary
+                exercisesList={exercisesList}
+                patients={patients}
+                
+                createExModalOpen={createExModalOpen}
+                setCreateExModalOpen={setCreateExModalOpen}
+                newExName={newExName}
+                setNewExName={setNewExName}
+                newExDesc={newExDesc}
+                setNewExDesc={setNewExDesc}
+                newExInst={newExInst}
+                setNewExInst={setNewExInst}
+                newExRom={newExRom}
+                setNewExRom={setNewExRom}
+                newExThumb={newExThumb}
+                setNewExThumb={setNewExThumb}
+                handleCreateExercise={handleCreateExercise}
 
-                {/* Exercises grid using ResponsiveGrid */}
-                <ResponsiveGrid colsMobile={1} colsTablet={2} colsDesktop={3}>
-                  {exercisesList.map(ex => (
-                    <ExerciseCard
-                      key={ex.id}
-                      name={ex.name}
-                      thumbnailUrl={ex.thumbnail_url || undefined}
-                      targetRom={ex.target_rom || undefined}
-                      description={ex.description || undefined}
-                      instructions={ex.instructions || undefined}
-                      actionButton={
-                        <div className="flex items-center justify-between pt-2 border-t border-chosen mt-2">
-                          <div className="flex flex-wrap gap-1">
-                            {exerciseJointTags(ex).map((j) => (
-                              <span key={j} className="text-[9px] font-bold bg-chosen-surface text-chosen-text-secondary px-2 py-0.5 rounded">
-                                {j}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              onClick={() => {
-                                setSelectedExerciseId(ex.id);
-                                setEditExName(ex.name);
-                                setEditExDesc(ex.description || '');
-                                setEditExInst(ex.instructions || '');
-                                setEditExRom(ex.target_rom?.toString() || '');
-                                setEditExThumb(ex.thumbnail_url || '');
-                                setEditExModalOpen(true);
-                              }}
-                              title="Edit Exercise"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="xs"
-                              onClick={() => handleDeleteExercise(ex.id)}
-                              title="Delete Exercise"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      }
-                    />
-                  ))}
-                </ResponsiveGrid>
-              </div>
+                editExModalOpen={editExModalOpen}
+                setEditExModalOpen={setEditExModalOpen}
+                selectedExerciseId={selectedExerciseId}
+                setSelectedExerciseId={setSelectedExerciseId}
+                editExName={editExName}
+                setEditExName={setEditExName}
+                editExDesc={editExDesc}
+                setEditExDesc={setEditExDesc}
+                editExInst={editExInst}
+                setEditExInst={setEditExInst}
+                editExRom={editExRom}
+                setEditExRom={setEditExRom}
+                editExThumb={editExThumb}
+                setEditExThumb={setEditExThumb}
+                handleEditExercise={handleEditExercise}
+                handleDeleteExercise={handleDeleteExercise}
+
+                assignModalOpen={assignModalOpen}
+                setAssignModalOpen={setAssignModalOpen}
+                selectedExerciseToAssign={selectedExerciseToAssign}
+                setSelectedExerciseToAssign={setSelectedExerciseToAssign}
+                assignDueDate={assignDueDate}
+                setAssignDueDate={setAssignDueDate}
+                assigning={assigning}
+                handleAssignExercise={handleAssignExercise}
+                selectedPatientId={selectedPatientId}
+                setSelectedPatientId={setSelectedPatientId}
+              />
             )}
 
             {/* ==========================================
@@ -2253,76 +2237,17 @@ const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* ==========================================
-                TAB: ANALYTICS
-                ========================================== */}
             {activeTab === 'analytics' && (
-              <div className="space-y-8 animate-slide-up text-left">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* ROM Curve */}
-                  <AnalyticsCard
-                    title="Flexion (ROM) Recovery Progress"
-                    subtitle="Average degrees achieved over the last 4 weeks"
-                  >
-                    <div className="h-64 flex items-end gap-6 justify-between pt-6 border-b border-l border-chosen px-4">
-                      <div className="flex flex-col items-center w-full gap-2">
-                        <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '110px' }} />
-                        <span className="text-[10px] font-bold text-chosen-text-muted">Week 1 (110°)</span>
-                      </div>
-                      <div className="flex flex-col items-center w-full gap-2">
-                        <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '120px' }} />
-                        <span className="text-[10px] font-bold text-chosen-text-muted">Week 2 (120°)</span>
-                      </div>
-                      <div className="flex flex-col items-center w-full gap-2">
-                        <div className="bg-[#A27B41]/80 w-full rounded-t-lg transition-all duration-500" style={{ height: '135px' }} />
-                        <span className="text-[10px] font-bold text-chosen-text-muted">Week 3 (135°)</span>
-                      </div>
-                      <div className="flex flex-col items-center w-full gap-2">
-                        <div className="bg-gold-500 w-full rounded-t-lg transition-all duration-500" style={{ height: '142px' }} />
-                        <span className="text-[10px] font-bold text-chosen-text-muted">Week 4 (142°)</span>
-                      </div>
-                    </div>
-                  </AnalyticsCard>
-
-                  {/* Accuracy */}
-                  <AnalyticsCard
-                    title="Form Alignment Scores"
-                    subtitle="Aggregated sensor tracking scores"
-                  >
-                    <div className="space-y-4 pt-4">
-                      <div className="space-y-1.5 text-left">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span className="text-chosen-text-secondary">Shoulder Alignment</span>
-                          <span className="text-chosen-text-primary">94%</span>
-                        </div>
-                        <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
-                          <div className="bg-gold-500 h-full rounded-full" style={{ width: '94%' }} />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5 text-left">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span className="text-chosen-text-secondary">Elbow Flexion</span>
-                          <span className="text-chosen-text-primary">88%</span>
-                        </div>
-                        <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
-                          <div className="bg-gold-500 h-full rounded-full" style={{ width: '88%' }} />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5 text-left">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span className="text-chosen-text-secondary">Knee Symmetry</span>
-                          <span className="text-chosen-text-primary">92%</span>
-                        </div>
-                        <div className="w-full bg-chosen-surface h-2 rounded-full overflow-hidden">
-                          <div className="bg-gold-500 h-full rounded-full" style={{ width: '92%' }} />
-                        </div>
-                      </div>
-                    </div>
-                  </AnalyticsCard>
-                </div>
-              </div>
+              <AnalyticsDashboard
+                patients={patients}
+                exercisesList={exercisesList}
+                motionReports={motionReports}
+                stats={stats}
+                onRefresh={async () => {
+                  await loadPatientsAndStats(searchQuery, includeArchived);
+                  await loadMotionReports();
+                }}
+              />
             )}
 
             {/* ==========================================
@@ -2580,110 +2505,6 @@ const AdminDashboard: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Modal: Create Exercise */}
-      <Modal
-        isOpen={createExModalOpen}
-        onClose={() => setCreateExModalOpen(false)}
-        title="Create Catalog Exercise"
-      >
-        <p className="text-xs text-chosen-text-muted mb-4">Register a new physical exercise template in the system.</p>
-        <form onSubmit={handleCreateExercise} className="space-y-4">
-          <Input
-            label="Exercise Name"
-            type="text"
-            required
-            placeholder="e.g. Elbow Flexion Routine"
-            value={newExName}
-            onChange={(e) => setNewExName(e.target.value)}
-          />
-          <Textarea
-            label="Description"
-            placeholder="Short summary of the exercise..."
-            value={newExDesc}
-            onChange={(e) => setNewExDesc(e.target.value)}
-            className="min-h-[60px]"
-          />
-          <Textarea
-            label="Instructions"
-            placeholder="Instructions detailing flexion extension guides..."
-            value={newExInst}
-            onChange={(e) => setNewExInst(e.target.value)}
-            className="min-h-[65px]"
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Target ROM (Degrees)"
-              type="number"
-              placeholder="e.g. 135"
-              value={newExRom}
-              onChange={(e) => setNewExRom(e.target.value)}
-            />
-            <Input
-              label="Thumbnail Graphic URL"
-              type="text"
-              placeholder="https://images.unsplash.com/..."
-              value={newExThumb}
-              onChange={(e) => setNewExThumb(e.target.value)}
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full mt-2"
-          >
-            Create Exercise Template
-          </Button>
-        </form>
-      </Modal>
-
-      {/* Modal: Edit Exercise */}
-      <Modal
-        isOpen={editExModalOpen}
-        onClose={() => setEditExModalOpen(false)}
-        title="Edit Catalog Exercise"
-      >
-        <p className="text-xs text-chosen-text-muted mb-4">Update instructions or guidelines for this motion capture.</p>
-        <form onSubmit={handleEditExercise} className="space-y-4">
-          <Input
-            label="Exercise Name"
-            type="text"
-            required
-            value={editExName}
-            onChange={(e) => setEditExName(e.target.value)}
-          />
-          <Textarea
-            label="Description"
-            value={editExDesc}
-            onChange={(e) => setEditExDesc(e.target.value)}
-            className="min-h-[60px]"
-          />
-          <Textarea
-            label="Instructions"
-            value={editExInst}
-            onChange={(e) => setEditExInst(e.target.value)}
-            className="min-h-[65px]"
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Target ROM (Degrees)"
-              type="number"
-              value={editExRom}
-              onChange={(e) => setEditExRom(e.target.value)}
-            />
-            <Input
-              label="Thumbnail Graphic URL"
-              type="text"
-              value={editExThumb}
-              onChange={(e) => setEditExThumb(e.target.value)}
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full mt-2"
-          >
-            Save Exercise Changes
-          </Button>
-        </form>
-      </Modal>
     </PageContainer>
   );
 };

@@ -20,7 +20,7 @@ if not exist "frontend\node_modules" (
 )
 
 echo Starting Backend Service (FastAPI) in a separate window...
-start "Chosen Motion - Backend" cmd /k "cd backend && .venv\Scripts\activate.bat && uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
+start "Chosen Motion - Backend" cmd /k "cd backend && .venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload"
 
 echo Starting Frontend Service (Vite) in a separate window...
 start "Chosen Motion - Frontend" cmd /k "cd frontend && npm run dev"

@@ -404,6 +404,8 @@ const MotionTracking: React.FC<MotionTrackingProps> = ({
 
   // 3. Request webcam stream and manage draw animation loop
   useEffect(() => {
+    let activeStream: MediaStream | null = null;
+
     if (!cameraEnabled) {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -433,6 +435,8 @@ const MotionTracking: React.FC<MotionTrackingProps> = ({
           audio: false
         });
 
+        activeStream = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
@@ -440,6 +444,9 @@ const MotionTracking: React.FC<MotionTrackingProps> = ({
           if (onCameraReady) onCameraReady(true);
           
           requestRef.current = requestAnimationFrame(drawLoop);
+        } else {
+          // Prevent resource leak if ref is missing
+          stream.getTracks().forEach(track => track.stop());
         }
       } catch (err: any) {
         console.error('Camera access permissions blocked or failed', err);
@@ -454,9 +461,10 @@ const MotionTracking: React.FC<MotionTrackingProps> = ({
     }
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      }
+      if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
       if (requestRef.current) {

@@ -82,7 +82,7 @@ export const StatisticCard: React.FC<StatisticCardProps> = ({
   className = '',
 }) => {
   return (
-    <Card className={`flex items-center justify-between p-6 ${className}`}>
+    <Card className={`h-full flex items-center justify-between p-6 ${className}`}>
       <div className="space-y-2 text-left">
         <span className="text-2xs font-bold uppercase tracking-widest text-chosen-text-muted">{label}</span>
         <h3 className="font-display font-bold text-3xl text-chosen-text-primary">{value}</h3>

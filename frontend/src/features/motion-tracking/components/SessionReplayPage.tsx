@@ -17,7 +17,9 @@ import {
   TrendingUp,
   Clock,
   User,
-  Plus
+  Plus,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import {
   fetchSessionDetail,
@@ -55,6 +57,9 @@ export const SessionReplayPage: React.FC = () => {
 
   // Tab State: 'metrics' | 'insights' | 'compare' | 'notes'
   const [activeTab, setActiveTab] = useState<'metrics' | 'insights' | 'compare' | 'notes'>('metrics');
+
+  // Expansion State (Theater Mode)
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // Practitioner Notes cache
   const [sessionNotes, setSessionNotes] = useState<Record<string, Array<{
@@ -310,7 +315,7 @@ export const SessionReplayPage: React.FC = () => {
         {/* ==========================================
             LEFT PANEL: CONTEXT INFORMATION (col-span-3)
             ========================================== */}
-        <div className="col-span-12 lg:col-span-3 space-y-6 text-left lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:pr-2 lg:panel-scroll">
+        <div className={cn("space-y-6 text-left lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:pr-2 lg:panel-scroll", isExpanded ? "hidden" : "col-span-12 lg:col-span-3")}>
           {/* Patient Card */}
           <Card className="p-5 space-y-4">
             <h3 className="font-display font-bold text-xs uppercase tracking-wider text-chosen-text-primary border-b border-chosen pb-2 flex items-center gap-2">
@@ -387,11 +392,30 @@ export const SessionReplayPage: React.FC = () => {
         {/* ==========================================
             CENTER PANEL: PRIMARY REPLAY CANVASES (col-span-5)
             ========================================== */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 text-left lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:pr-2 lg:panel-scroll">
+        <div className={cn("flex flex-col gap-6 text-left lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto lg:pr-2 lg:panel-scroll", isExpanded ? "col-span-12 lg:col-span-8" : "col-span-12 lg:col-span-5")}>
           <Card className="p-4 space-y-4">
             <h3 className="font-display font-bold text-xs uppercase tracking-wider text-[#A27B41] border-b border-chosen pb-2 flex items-center justify-between">
-              Skeleton Pose Replay
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />
+              <span className="flex items-center gap-2">
+                Skeleton Pose Replay
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />
+              </span>
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="px-2 py-1 rounded bg-[#F5F5F5] dark:bg-charcoal-850 border border-chosen text-chosen-text-secondary hover:text-[#A27B41] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 font-bold text-2xs uppercase tracking-wider cursor-pointer select-none"
+                title={isExpanded ? "Collapse to Default Mode" : "Expand to Theater Mode"}
+              >
+                {isExpanded ? (
+                  <>
+                    <Minimize2 className="h-3 w-3 text-gold-500" />
+                    <span>Collapse</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="h-3 w-3" />
+                    <span>Expand View</span>
+                  </>
+                )}
+              </button>
             </h3>
             <div className="w-full relative rounded-chosen-lg overflow-hidden border border-chosen bg-slate-950">
               <SkeletonReplay 
@@ -407,7 +431,7 @@ export const SessionReplayPage: React.FC = () => {
             ========================================== */}
         <div className="col-span-12 lg:col-span-4 space-y-6 text-left lg:max-h-[calc(100vh-220px)] lg:flex lg:flex-col lg:overflow-hidden lg:pt-1">
           {/* Tab switches */}
-          <div className="flex bg-[#F5F5F5] dark:bg-charcoal-850 p-1.5 rounded-chosen-lg border border-chosen overflow-x-auto select-none gap-1">
+          <div className="flex bg-[#F5F5F5] dark:bg-charcoal-850 p-1.5 rounded-chosen-lg border border-chosen overflow-x-auto lg:overflow-x-visible select-none gap-1 flex-shrink-0">
             {(['metrics', 'insights', 'compare', 'notes'] as const).map((tab) => (
               <button
                 key={tab}

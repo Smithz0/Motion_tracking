@@ -208,3 +208,55 @@
     @apply font-display font-bold text-3xl tracking-tight text-[#0D0C18] dark:text-white;
   }
 }
+
+/* ==========================================================================
+   Clinical Report Printing & Save PDF Media Styles
+   ========================================================================== */
+@media print {
+  /* Hide sidebar navigation, clinician header wrappers, custom filter card panels, and buttons */
+  aside,
+  nav,
+  header,
+  .no-print,
+  button,
+  select,
+  .bg-white.dark\:bg-\[\#0d0c18\] {
+    display: none !important;
+  }
+
+  /* Reset layout constraints to expand content across printable bounds */
+  body,
+  html,
+  #root,
+  main,
+  .min-h-screen,
+  .bg-chosen-background {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Expand workspace content containers */
+  main,
+  .flex-1 {
+    margin-left: 0 !important;
+    padding: 15px !important;
+    width: 100% !important;
+  }
+
+  /* Stretch charts cards layout dynamically */
+  .grid {
+    display: grid !important;
+    width: 100% !important;
+  }
+
+  /* Force chart graphics wrapper widths */
+  .recharts-responsive-container {
+    width: 100% !important;
+    height: 250px !important;
+  }
+}
