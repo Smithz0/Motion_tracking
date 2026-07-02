@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Logo } from '../ui/Logo';
 
 // Helper function to combine classNames safely
 export function cn(...inputs: any[]) {
@@ -33,31 +34,16 @@ export const PageContainer: React.FC<PageContainerProps> = ({
     <div className={cn("min-h-screen bg-white dark:bg-[#0d0c18] flex flex-col md:flex-row transition-colors duration-200 text-chosen-text-primary", className)}>
       {/* Sidebar container */}
       {sidebar && (
-        <div className="shrink-0 z-30">
+        <aside className="hidden md:block w-64 shrink-0">
           {sidebar}
-        </div>
+        </aside>
       )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Header across the top */}
-        {header && (
-          <div className="sticky top-0 z-20">
-            {header}
-          </div>
-        )}
-
-        {/* Scrollable central content */}
-        <main className="flex-1 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0">
+        {header && <header className="w-full shrink-0">{header}</header>}
+        <main className={cn("flex-1 p-6 md:p-8 overflow-y-auto", className)}>
           {children}
         </main>
-
-        {/* Bottom Navigation for Mobile */}
-        {bottomNav && (
-          <div className="block md:hidden sticky bottom-0 z-20">
-            {bottomNav}
-          </div>
-        )}
+        {bottomNav && <nav className="md:hidden shrink-0">{bottomNav}</nav>}
       </div>
     </div>
   );
@@ -112,8 +98,8 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Logo block */}
         {logo && (
-          <div className="h-9 w-9 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] shadow-chosen-sm shrink-0">
-            {logo}
+          <div className="md:hidden shrink-0">
+            <Logo size="sm" />
           </div>
         )}
 
@@ -229,12 +215,10 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
-  title = "Chosen Life",
   subtitle = "Portal",
   items,
   profile,
   onSignOut,
-  logo,
 }) => {
   return (
     <>
@@ -253,21 +237,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         {/* Sidebar Header */}
-        <div className="p-6 flex items-center justify-between border-b border-charcoal-800 shrink-0">
-          <div className="flex items-center gap-3 text-left">
-            {logo ? (
-              <div className="h-9 w-9 bg-white rounded-chosen-md flex items-center justify-center shadow-chosen-sm text-[#A27B41]">
-                {logo}
-              </div>
-            ) : (
-              <div className="h-9 w-9 bg-white rounded-chosen-md flex items-center justify-center shadow-chosen-sm text-[#A27B41] font-bold font-display text-lg">
-                C
-              </div>
-            )}
-            <div>
-              <span className="font-display font-bold text-base text-white block leading-none">{title}</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#A27B41] block mt-1">{subtitle}</span>
-            </div>
+        <div className="p-5 flex items-center justify-between border-b border-charcoal-800 shrink-0">
+          <div className="flex flex-col gap-1 text-left">
+            <Logo size="md" />
+            <span className="text-[9px] uppercase font-bold tracking-widest text-[#A27B41] block pl-8 mt-[-2px]">{subtitle}</span>
           </div>
           
           <button 

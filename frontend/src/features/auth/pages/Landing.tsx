@@ -14,6 +14,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 
 const Landing: React.FC = () => {
   const { signInMock } = useAuth();
@@ -37,14 +38,7 @@ const Landing: React.FC = () => {
 
       {/* Navigation Header */}
       <header className="relative z-10 max-w-7xl mx-auto w-full px-6 h-20 flex items-center justify-between border-b border-[#E5E5E5] dark:border-charcoal-800 bg-white/60 dark:bg-[#0d0c18]/60 backdrop-blur-md sticky top-0">
-        <div className="flex items-center gap-2.5">
-          <div className="h-10 w-10 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] shadow-chosen-sm">
-            <Activity className="h-5 w-5 text-[#A27B41]" />
-          </div>
-          <span className="font-display font-bold text-xl tracking-tight text-[#0D0C18] dark:text-white">
-            Chosen Life
-          </span>
-        </div>
+        <Logo size="lg" />
         
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-[#525252] dark:text-[#c7cbd2]">
           <a href="#features" className="hover:text-[#A27B41] dark:hover:text-[#CDB07C] transition-colors duration-200">Features</a>

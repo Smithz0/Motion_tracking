@@ -67,7 +67,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
   };
 
   const formColor = getMetricColor(score);
-  const accuracyColor = getMetricColor(metrics.accuracy_score || score);
+  const accuracyColor = getMetricColor(metrics.accuracy_score !== undefined ? metrics.accuracy_score : score);
   const romColor = getMetricColor((metrics.rom / 180) * 100);
   const smoothnessColor = getMetricColor(metrics.smoothness || 80);
   const symmetryPct = metrics.symmetry > 2 ? Math.round(metrics.symmetry) : Math.round(metrics.symmetry * 100);
@@ -85,116 +85,123 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
 
   return (
     <div className="flex flex-col gap-4 w-full text-left">
-      {/* Primary score cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 w-full">
-        <div className={`flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border ${formColor.border} ${formColor.glow} shadow-chosen-sm`}>
+      {/* Primary score cards in 2-column grid to prevent overlap in the sidebar */}
+      <div className="grid grid-cols-2 gap-4 w-full">
+        {/* Form Score */}
+        <div className={`flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border ${formColor.border} ${formColor.glow} shadow-chosen-sm`}>
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Form Score</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">{score}%</span>
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Form Score</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">{score}%</span>
             </div>
-            <div className={`p-2.5 rounded-chosen-md ${formColor.bg} ${formColor.text}`}>
-              <Award className="h-5 w-5" />
+            <div className={`p-2 rounded-chosen-md ${formColor.bg} ${formColor.text}`}>
+              <Award className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div className={`h-full ${formColor.accent}`} style={{ width: `${score}%` }} />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Landmark stability rating</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Landmark stability rating</span>
         </div>
 
-        <div className={`flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border ${accuracyColor.border} ${accuracyColor.glow} shadow-chosen-sm`}>
+        {/* Accuracy */}
+        <div className={`flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border ${accuracyColor.border} ${accuracyColor.glow} shadow-chosen-sm`}>
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Accuracy</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">
-                {metrics.accuracy_score !== undefined ? `${metrics.accuracy_score}%` : 'N/A'}
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Accuracy</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">
+                {metrics.accuracy_score !== undefined ? `${Math.round(metrics.accuracy_score)}%` : 'N/A'}
               </span>
             </div>
-            <div className={`p-2.5 rounded-chosen-md ${accuracyColor.bg} ${accuracyColor.text}`}>
-              <ShieldCheck className="h-5 w-5" />
+            <div className={`p-2 rounded-chosen-md ${accuracyColor.bg} ${accuracyColor.text}`}>
+              <ShieldCheck className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div className={`h-full ${accuracyColor.accent}`} style={{ width: `${metrics.accuracy_score || score}%` }} />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Form corrections & compensation</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Form corrections & compensation</span>
         </div>
 
-        <div className={`flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border ${romColor.border} ${romColor.glow} shadow-chosen-sm`}>
+        {/* Range of Motion */}
+        <div className={`flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border ${romColor.border} ${romColor.glow} shadow-chosen-sm`}>
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Range of Motion</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">{Math.round(metrics.rom)}°</span>
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Range of Motion</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">{Math.round(metrics.rom)}°</span>
             </div>
-            <div className={`p-2.5 rounded-chosen-md ${romColor.bg} ${romColor.text}`}>
-              <Activity className="h-5 w-5" />
+            <div className={`p-2 rounded-chosen-md ${romColor.bg} ${romColor.text}`}>
+              <Activity className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div className={`h-full ${romColor.accent}`} style={{ width: `${Math.min(100, (metrics.rom / 180) * 100)}%` }} />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Peak joint deflection</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Peak joint deflection</span>
         </div>
 
-        <div className={`flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border ${symmetryColor.border} ${symmetryColor.glow} shadow-chosen-sm`}>
+        {/* Symmetry */}
+        <div className={`flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border ${symmetryColor.border} ${symmetryColor.glow} shadow-chosen-sm`}>
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Symmetry</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">{symmetryPct}%</span>
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Symmetry</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">{symmetryPct}%</span>
             </div>
-            <div className={`p-2.5 rounded-chosen-md ${symmetryColor.bg} ${symmetryColor.text}`}>
-              <Scale className="h-5 w-5" />
+            <div className={`p-2 rounded-chosen-md ${symmetryColor.bg} ${symmetryColor.text}`}>
+              <Scale className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div className={`h-full ${symmetryColor.accent}`} style={{ width: `${symmetryPct}%` }} />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Left/right bilateral balance</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Left/right bilateral balance</span>
         </div>
 
-        <div className={`flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border ${smoothnessColor.border} ${smoothnessColor.glow} shadow-chosen-sm`}>
+        {/* Smoothness */}
+        <div className={`flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border ${smoothnessColor.border} ${smoothnessColor.glow} shadow-chosen-sm`}>
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Smoothness</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">
-                {metrics.smoothness !== undefined ? `${metrics.smoothness}%` : 'N/A'}
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Smoothness</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">
+                {metrics.smoothness !== undefined ? `${Math.round(metrics.smoothness)}%` : 'N/A'}
               </span>
             </div>
-            <div className={`p-2.5 rounded-chosen-md ${smoothnessColor.bg} ${smoothnessColor.text}`}>
-              <Zap className="h-5 w-5" />
+            <div className={`p-2 rounded-chosen-md ${smoothnessColor.bg} ${smoothnessColor.text}`}>
+              <Zap className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div className={`h-full ${smoothnessColor.accent}`} style={{ width: `${metrics.smoothness || 80}%` }} />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Velocity stability rating</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Velocity stability rating</span>
         </div>
 
-        <div className="flex flex-col p-5 rounded-chosen-lg bg-chosen-raised border border-chosen shadow-chosen-sm">
+        {/* Peak ROM Target */}
+        <div className="flex flex-col p-4 rounded-chosen-lg bg-chosen-raised border border-chosen shadow-chosen-sm">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-chosen-text-muted uppercase tracking-wider">Peak ROM</span>
-              <span className="text-3xl font-extrabold text-chosen-text-primary mt-2">
+              <span className="text-[10px] font-bold text-chosen-text-muted uppercase tracking-wider">Peak ROM</span>
+              <span className="text-2xl font-extrabold text-chosen-text-primary mt-1">
                 {Math.round(metrics.max_rom || metrics.rom)}°
               </span>
             </div>
-            <div className="p-2.5 rounded-chosen-md bg-gold-500/10 text-gold-500">
-              <Target className="h-5 w-5" />
+            <div className="p-2 rounded-chosen-md bg-gold-500/10 text-gold-500">
+              <Target className="h-4 w-4" />
             </div>
           </div>
-          <div className="w-full bg-chosen-surface h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-chosen-surface h-1 rounded-full mt-3 overflow-hidden">
             <div
               className="h-full bg-gold-500"
               style={{ width: `${Math.min(100, ((metrics.max_rom || metrics.rom) / 180) * 100)}%` }}
             />
           </div>
-          <span className="text-[10px] text-chosen-text-muted mt-2 font-medium">Maximum angle achieved</span>
+          <span className="text-[9px] text-chosen-text-muted mt-1.5 font-medium">Maximum angle achieved</span>
         </div>
       </div>
 
-      {/* Secondary stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 bg-chosen-surface p-4 rounded-chosen-lg border border-chosen">
+      {/* Secondary stats bar inside the sidebar */}
+      <div className="grid grid-cols-2 gap-3 bg-chosen-surface p-4 rounded-chosen-lg border border-chosen">
+        {/* Reps */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-gold-500 rounded-chosen-sm">
             <Repeat className="h-4 w-4" />
@@ -205,6 +212,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </div>
         </div>
 
+        {/* Duration */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-indigo-500 rounded-chosen-sm">
             <Clock className="h-4 w-4" />
@@ -215,6 +223,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </div>
         </div>
 
+        {/* Avg Speed */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-success rounded-chosen-sm">
             <Activity className="h-4 w-4" />
@@ -225,6 +234,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </div>
         </div>
 
+        {/* Tempo */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-gold-500 rounded-chosen-sm">
             <TrendingUp className="h-4 w-4" />
@@ -235,6 +245,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </div>
         </div>
 
+        {/* Form Alerts */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-error rounded-chosen-sm">
             <AlertTriangle className="h-4 w-4" />
@@ -247,6 +258,7 @@ export const MetricsPanel: React.FC<MetricsPanelProps> = ({
           </div>
         </div>
 
+        {/* Status */}
         <div className="flex items-center gap-3 p-3 rounded-chosen-md bg-chosen-raised border border-chosen">
           <div className="p-2 bg-chosen-surface text-chosen-text-secondary rounded-chosen-sm">
             <ShieldCheck className="h-4 w-4" />

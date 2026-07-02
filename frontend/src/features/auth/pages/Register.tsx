@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { syncUserWithBackend, signUpWithBackend } from '@/services/api';
-import { Activity, Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User, Shield, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Logo } from '@/components/ui/Logo';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -112,10 +113,7 @@ const Register: React.FC = () => {
       <div className="w-full max-w-md bg-white dark:bg-charcoal-850 border border-[#E5E5E5] dark:border-charcoal-700 p-8 rounded-chosen-lg shadow-chosen-lg animate-fade-in text-left">
         
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="h-12 w-12 bg-[#141414] dark:bg-white rounded-chosen-md flex items-center justify-center text-white dark:text-[#141414] mb-3 shadow-chosen-sm">
-            <Activity className="h-6 w-6 text-[#A27B41]" />
-          </div>
-          <h1 className="font-display font-bold text-2xl text-[#0D0C18] dark:text-white">Join Chosen Life</h1>
+          <Logo size="xl" className="mb-2" />
           <p className="text-xs text-[#525252] dark:text-[#a3a3a3] mt-1">Create an account to begin tracking motion</p>
         </div>
 
